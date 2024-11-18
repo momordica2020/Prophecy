@@ -45,7 +45,7 @@ namespace SharpSxwnl
         /// <summary>
         /// 存储压缩的各地经纬度数据, 功能类似于交错数组 string[][]
         /// </summary>
-        public static xList<xList<string>> JWv
+        public static List<List<string>> JWv
         {
             get { return JWdata.__JWv; }
             set { JWdata.__JWv = value; }
@@ -54,7 +54,7 @@ namespace SharpSxwnl
         /// <summary>
         /// 存储压缩的各时区数据, 功能类似于交错数组 string[][]
         /// </summary>
-        public static xList<xList<string>> SQv
+        public static List<List<string>> SQv
         {
             get { return JWdata.__SQv; }
             set { JWdata.__SQv = value; }
@@ -96,7 +96,7 @@ namespace SharpSxwnl
                     string[] strJWv = regexToTrim.Replace(foundNode.InnerText, "").Split(lineFlags, StringSplitOptions.RemoveEmptyEntries);
                     for (int i = 0; i < strJWv.Length; i++)
                     {
-                        JWdata.JWv.Add(new xList<string>());
+                        JWdata.JWv.Add(new List<string>());
                         JWdata.JWv[i].AddRange(regexToTrim.Replace(strJWv[i], "").Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));  //解开清单
                     }
                 }
@@ -109,7 +109,7 @@ namespace SharpSxwnl
                     string[] strSQv = regexToTrim.Replace(foundNode.InnerText, "").Split(lineFlags, StringSplitOptions.RemoveEmptyEntries);
                     for (int i = 0; i < strSQv.Length; i++)
                     {
-                        JWdata.SQv.Add(new xList<string>());
+                        JWdata.SQv.Add(new List<string>());
                         JWdata.SQv[i].AddRange(regexToTrim.Replace(strSQv[i], "").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));  //解开各地时区清单
                     }
                 }
@@ -190,12 +190,12 @@ namespace SharpSxwnl
         /// <summary>
         /// 存储压缩的各地经纬度数据
         /// </summary>
-        private static xList<xList<string>> __JWv = new xList<xList<string>>();    // C#: 注: 与下面的数据相关, 共 32 个省区
+        private static List<List<string>> __JWv = new List<List<string>>();    // C#: 注: 与下面的数据相关, 共 32 个省区
 
         /// <summary>
         /// 存储压缩的各时区数据
         /// </summary>
-        private static xList<xList<string>> __SQv = new xList<xList<string>>();    // C#: 注: 与下面的数据相关, 共 6 个大洲
+        private static List<List<string>> __SQv = new List<List<string>>();    // C#: 注: 与下面的数据相关, 共 6 个大洲
 
         private static int nothing = JWdata.InitJWdata();     // C#: 通过一个私有字段的赋值来初始化本类的数组
 

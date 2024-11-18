@@ -13,9 +13,9 @@ namespace SharpSxwnl
         
         public OB()
         {
-            this.ThisJieQi = new JieQiInfo();
-            this.PreviousJieQi = new JieQiInfo();
-            this.NextJieQi = new JieQiInfo();
+            this.所属节气 = new SolarTerm();
+            this.前一节气 = new SolarTerm();
+            this.下一节气 = new SolarTerm();
         }
 
         #endregion 构造函数
@@ -326,17 +326,17 @@ namespace SharpSxwnl
         /// <summary>
         /// 所属节令
         /// </summary>
-        public JieQiInfo ThisJieQi { get; set; }
+        public SolarTerm 所属节气 { get; set; }
 
         /// <summary>
         /// 上一节令
         /// </summary>
-        public JieQiInfo PreviousJieQi { get; set; }
+        public SolarTerm 前一节气 { get; set; }
 
         /// <summary>
         /// 下一节令
         /// </summary>
-        public JieQiInfo NextJieQi { get; set; }
+        public SolarTerm 下一节气 { get; set; }
 
         /// <summary>
         /// 每日的十二建信息, 即: {建, 除, 满, 平, 定, 执, 破, 危, 成, 收, 开, 闭} 其中之一

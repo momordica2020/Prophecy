@@ -16,7 +16,7 @@ namespace SharpSxwnl
         /// <summary>
         /// 按周规则定义的世界性节日(纪念日)
         /// </summary>
-        public static xList<string> wFtv
+        public static List<string> wFtv
         {
             get{ return oba.__wFtv; }
             set{ oba.__wFtv = value; }
@@ -25,7 +25,7 @@ namespace SharpSxwnl
         /// <summary>
         /// 各月的节日(纪念日), 将原 Javascript 代码进行了适当的改写
         /// </summary>
-        public static xList<xList<string>> sFtv
+        public static List<List<string>> sFtv
         {
             get { return oba.__sFtv; }
             set { oba.__sFtv = value; }
@@ -54,7 +54,7 @@ namespace SharpSxwnl
                 r.Fjia = 1;   // 星期日或星期六放假
 
             // 按公历日期查找
-            for (i = 0; i < oba.sFtv[u.m - 1].Length; i++)    // C#: 注: 属性 sFtv 在初始化时已经包含了 12 个元素, 以对应 12 个月
+            for (i = 0; i < oba.sFtv[u.m - 1].Count; i++)    // C#: 注: 属性 sFtv 在初始化时已经包含了 12 个元素, 以对应 12 个月
             {
                 // 公历节日或纪念日,遍历本月节日表
                 s = oba.sFtv[u.m - 1][i];
@@ -86,7 +86,7 @@ namespace SharpSxwnl
             string w__ = m0 + w + u.week;    // d日在本月的第几个星期某
             string w2__ = m0 + w2 + u.week;
 
-            for (i = 0; i < oba.wFtv.Length; i++)
+            for (i = 0; i < oba.wFtv.Count; i++)
             {
                 s = oba.wFtv[i];
                 s2 = s.Substring(0, 4);
@@ -129,12 +129,12 @@ namespace SharpSxwnl
         /// <summary>
         /// 按周规则定义的世界性节日(纪念日)
         /// </summary>
-        private static xList<string> __wFtv = oba.getwFtvData();
+        private static List<string> __wFtv = oba.getwFtvData();
 
         /// <summary>
         /// 各月的节日(纪念日), 功能类似于交错数组
         /// </summary>
-        private static xList<xList<string>> __sFtv = oba.getsFtvData();   // 国历节日,#表示放假日,I表示重要节日或纪念日
+        private static List<List<string>> __sFtv = oba.getsFtvData();   // 国历节日,#表示放假日,I表示重要节日或纪念日
 
         #endregion
 
@@ -146,9 +146,9 @@ namespace SharpSxwnl
         /// 从 Xml 文档对象加载 wFtv 数据
         /// </summary>
         /// <returns></returns>
-        private static xList<string> getwFtvData()
+        private static List<string> getwFtvData()
         {
-            xList<string> result = new xList<string>();
+            List<string> result = new List<string>();
 
             //----------------------------------------------------------------------------------------
             // 加载 Xml 数据:  按周规则定义的节日(纪念日)
@@ -180,13 +180,13 @@ namespace SharpSxwnl
         /// 从 Xml 文档对象加载 sFtv 数据
         /// </summary>
         /// <returns></returns>
-        private static xList<xList<string>> getsFtvData()
+        private static List<List<string>> getsFtvData()
         {
             const int monthNumPerYear = 12;
-            xList<xList<string>> result = new xList<xList<string>>();
+            List<List<string>> result = new List<List<string>>();
 
             for (int i = 0; i < monthNumPerYear; i++)    // C#: 预置 12 个元素
-                result.Add(new xList<string>());
+                result.Add(new List<string>());
 
             //----------------------------------------------------------------------------------------
             // 加载 Xml 数据:  按周规则定义的节日(纪念日)

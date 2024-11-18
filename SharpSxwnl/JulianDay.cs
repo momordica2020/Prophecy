@@ -7,7 +7,7 @@ namespace SharpSxwnl
     /// <summary>
     /// 日期元件
     /// </summary>
-    public static class JD
+    public static class JulianDay
     {
         #region 公共属性(注: 初始转换时为公共字段, 已改写, 请参阅“转换时增加的私有字段”)
 
@@ -16,8 +16,8 @@ namespace SharpSxwnl
         /// </summary>
         public static double Y
         {
-            get { return JD.__Y; }
-            set { JD.__Y = value; }
+            get { return JulianDay.__Y; }
+            set { JulianDay.__Y = value; }
         }
 
         /// <summary>
@@ -25,8 +25,8 @@ namespace SharpSxwnl
         /// </summary>
         public static double M
         {
-            get { return JD.__M; }
-            set { JD.__M = value; }
+            get { return JulianDay.__M; }
+            set { JulianDay.__M = value; }
         }
 
         /// <summary>
@@ -34,8 +34,8 @@ namespace SharpSxwnl
         /// </summary>
         public static double D
         {
-            get { return JD.__D; }
-            set { JD.__D = value; }
+            get { return JulianDay.__D; }
+            set { JulianDay.__D = value; }
         }
 
         /// <summary>
@@ -43,8 +43,8 @@ namespace SharpSxwnl
         /// </summary>
         public static double h
         {
-            get { return JD.__h; }
-            set { JD.__h = value; }
+            get { return JulianDay.__h; }
+            set { JulianDay.__h = value; }
         }
 
         /// <summary>
@@ -52,8 +52,8 @@ namespace SharpSxwnl
         /// </summary>
         public static double m
         {
-            get { return JD.__m; }
-            set { JD.__m = value; }
+            get { return JulianDay.__m; }
+            set { JulianDay.__m = value; }
         }
 
         /// <summary>
@@ -61,8 +61,8 @@ namespace SharpSxwnl
         /// </summary>
         public static double s
         {
-            get { return JD.__s; }
-            set { JD.__s = value; }
+            get { return JulianDay.__s; }
+            set { JulianDay.__s = value; }
         }
 
         /// <summary>
@@ -70,8 +70,8 @@ namespace SharpSxwnl
         /// </summary>
         public static string[] Weeks
         {
-            get { return JD.__Weeks; }
-            set { JD.__Weeks = value; }
+            get { return JulianDay.__Weeks; }
+            set { JulianDay.__Weeks = value; }
         }
 
         #endregion 公共属性
@@ -129,14 +129,14 @@ namespace SharpSxwnl
                 double y1 = 2014, sd = 0.4, jsd = 31;
                 if (y <= y1) 
                     return 64.7 + (y - 2005) * sd;    //直线外推
-                double v = JD.deltatExt(y, jsd);        //二次曲线外推
-                double dv = JD.deltatExt(y1, jsd) - (64.7 + (y1 - 2005) * sd); //y1年的二次外推与直线外推的差
+                double v = JulianDay.deltatExt(y, jsd);        //二次曲线外推
+                double dv = JulianDay.deltatExt(y1, jsd) - (64.7 + (y1 - 2005) * sd); //y1年的二次外推与直线外推的差
                 if (y < y1 + 100) 
                     v -= dv * (y1 + 100 - y) / 100;
                 return v;
             }
             int i;
-            double[] d = JD.dts;
+            double[] d = JulianDay.dts;
             for (i = 0; i < d.Length; i += 5) 
                 if (y < d[i + 5]) 
                     break;
@@ -153,7 +153,7 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double deltatT2(double t)
         {
-            return JD.deltatT(t / 365.2425 + 2000) / 86400.0;
+            return JulianDay.deltatT(t / 365.2425 + 2000) / 86400.0;
         }
 
 
@@ -185,9 +185,9 @@ namespace SharpSxwnl
         /// 公历转儒略日
         /// </summary>
         /// <returns></returns>
-        public static double toJD()
+        public static double toJDay()
         {
-            return JD.JD__(JD.Y, JD.M, JD.D + ((JD.s / 60 + JD.m) / 60 + JD.h) / 24);
+            return JulianDay.JD__(JulianDay.Y, JulianDay.M, JulianDay.D + ((JulianDay.s / 60 + JulianDay.m) / 60 + JulianDay.h) / 24);
         }
 
 
@@ -196,7 +196,7 @@ namespace SharpSxwnl
         /// 儒略日数转公历
         /// </summary>
         /// <param name="jd">儒略日</param>
-        public static void setFromJD(double jd)
+        public static void setFromJDay(double jd)
         { 
             jd += 0.5;
             double A = LunarHelper.int2(jd), F = jd - A, D;  //取得日数的整数部份A及小数部分F
@@ -206,18 +206,18 @@ namespace SharpSxwnl
                 A += 1 + D - LunarHelper.int2(D / 4);
             }
             A += 1524;     //向前移4年零2个月
-            JD.Y = LunarHelper.int2((A - 122.1) / 365.25);    //年
-            D = A - LunarHelper.int2(365.25 * JD.Y);     //去除整年日数后余下日数
-            JD.M = LunarHelper.int2(D / 30.6001);           //月数
-            JD.D = D - LunarHelper.int2(JD.M * 30.6001);    //去除整月日数后余下日数
-            JD.Y -= 4716; JD.M--;
-            if (JD.M > 12) JD.M -= 12;
-            if (JD.M <= 2) JD.Y++;
+            JulianDay.Y = LunarHelper.int2((A - 122.1) / 365.25);    //年
+            D = A - LunarHelper.int2(365.25 * JulianDay.Y);     //去除整年日数后余下日数
+            JulianDay.M = LunarHelper.int2(D / 30.6001);           //月数
+            JulianDay.D = D - LunarHelper.int2(JulianDay.M * 30.6001);    //去除整月日数后余下日数
+            JulianDay.Y -= 4716; JulianDay.M--;
+            if (JulianDay.M > 12) JulianDay.M -= 12;
+            if (JulianDay.M <= 2) JulianDay.Y++;
 
             //日的小数转为时分秒
-            F *= 24; JD.h = LunarHelper.int2(F); F -= JD.h;
-            F *= 60; JD.m = LunarHelper.int2(F); F -= JD.m;
-            F *= 60; JD.s = F;
+            F *= 24; JulianDay.h = LunarHelper.int2(F); F -= JulianDay.h;
+            F *= 60; JulianDay.m = LunarHelper.int2(F); F -= JulianDay.m;
+            F *= 60; JulianDay.s = F;
         }
 
 
@@ -228,8 +228,8 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static string toStr()
         { 
-            string Y = "     " + JD.Y, M = "0" + JD.M, D = "0" + JD.D;
-            double h = JD.h, m = JD.m, s = LunarHelper.int2(JD.s + .5);
+            string Y = "     " + JulianDay.Y, M = "0" + JulianDay.M, D = "0" + JulianDay.D;
+            double h = JulianDay.h, m = JulianDay.m, s = LunarHelper.int2(JulianDay.s + .5);
             if (s >= 60) { s -= 60; m++; }
             if (m >= 60) { m -= 60; h++; }
             string hStr = "0" + h, mStr = "0" + m, sStr = "0" + s;
@@ -249,10 +249,10 @@ namespace SharpSxwnl
         /// </summary>
         /// <param name="jd"></param>
         /// <returns></returns>
-        public static string setFromJD_str(double jd)
+        public static string setFromJDay_str(double jd)
         {
-            JD.setFromJD(jd); 
-            return JD.toStr();
+            JulianDay.setFromJDay(jd); 
+            return JulianDay.toStr();
         }
 
 
@@ -299,14 +299,14 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double nnweek(double y, double m, double n, double w)
         {
-            double jd = JD.JD__(y, m, 1.5); //月首儒略日
+            double jd = JulianDay.JD__(y, m, 1.5); //月首儒略日
             double w0 = (jd + 1) % 7;       //月首的星期
             double r = jd - w0 + 7 * n + w;    //jd-w0+7*n是和n个星期0,起算下本月第一行的星期日(可能落在上一月)。加w后为第n个星期w
             if (w >= w0) r -= 7; //第1个星期w可能落在上个月,造成多算1周,所以考虑减1周
             if (n == 5)
             {
                 m++; if (m > 12) { m = 1; y++; }  //下个月
-                if (r >= JD.JD__(y, m, 1.5)) r -= 7; //r跑到下个月则减1周
+                if (r >= JulianDay.JD__(y, m, 1.5)) r -= 7; //r跑到下个月则减1周
             }
             return r;
         }

@@ -7,7 +7,7 @@ namespace SharpSxwnl
     /// <summary>
     /// 坐标类
     /// </summary>
-    public static class ZB
+    public static class Coordinate
     {
         #region 公共属性(注: 初始转换时为字段, 已改写为自动实现的属性)
 
@@ -40,8 +40,6 @@ namespace SharpSxwnl
 
 
 
-        #region 私有字段(注: 初始转换时为公共字段, 已改写)
-
         /// <summary>
         /// 章动计算时使用的数据(?)
         /// </summary>
@@ -57,8 +55,6 @@ namespace SharpSxwnl
             3.69,  25128.110,   0,      -3,  0,
             3.55,    628.362,   0,       2,  0
         };
-
-        #endregion
 
 
 
@@ -140,7 +136,7 @@ namespace SharpSxwnl
         { 
             int i;
             double c, a, t2 = t * t, dL = 0, dE = 0;
-            double[] B = ZB.nutB;
+            double[] B = Coordinate.nutB;
             for (i = 0; i < B.Length; i += 5)
             {
                 c = B[i] + B[i + 1] * t + B[i + 2] * t2;
@@ -148,8 +144,8 @@ namespace SharpSxwnl
                 dL += (B[i + 3] + a) * Math.Sin(c);
                 dE += B[i + 4] * Math.Cos(c);
             }
-            ZB.dL = dL / 100 / LunarHelper.rad;  //黄经章动
-            ZB.dE = dE / 100 / LunarHelper.rad;  //交角章动
+            Coordinate.dL = dL / 100 / LunarHelper.rad;  //黄经章动
+            Coordinate.dE = dE / 100 / LunarHelper.rad;  //交角章动
         }
 
 
@@ -163,7 +159,7 @@ namespace SharpSxwnl
         { 
             int i;
             double a, t2 = t * t, dL = 0;
-            double[] B = ZB.nutB;
+            double[] B = Coordinate.nutB;
             for (i = 0; i < B.Length; i += 5)
             {
                 if (i == 0) a = -1.742 * t; else a = 0;
@@ -178,7 +174,7 @@ namespace SharpSxwnl
         /// </summary>
         /// <param name="t">世纪数</param>
         /// <returns></returns>
-        public static double hcjj(double t)
+        public static double ObliquityOfEcliptic(double t)
         {
             double t2 = t * t, t3 = t2 * t, t4 = t3 * t;
             return (84381.4088 - 46.836051 * t - 0.0001667 * t2 - 0.00199911 * t3 - 0.000000523 * t4) / LunarHelper.rad;
@@ -309,9 +305,9 @@ namespace SharpSxwnl
             x0 = r0 * Math.Cos(g);
             y0 = r0 * Math.Sin(g);
 
-            ZB.llr2xyz(z[0], z[1], z[2], z);
+            Coordinate.llr2xyz(z[0], z[1], z[2], z);
             z[0] -= x0; z[1] -= y0; z[2] -= z0;
-            ZB.xyz2llr(z[0], z[1], z[2], z);
+            Coordinate.xyz2llr(z[0], z[1], z[2], z);
             z[2] /= dw;
         }
 
@@ -336,13 +332,13 @@ namespace SharpSxwnl
             { lh = dx; dx = dy; dy = lh; lh = x1; x1 = y1; y1 = lh; lh = 1; }
             double a = dy / dx, b = y1 - a * x1, c = dz / dx / f, d = z1 / f - c * x1;
             double A = a * a + c * c + 1, B = a * b + c * d, C = b * b + d * d - r * r, D = B * B - A * C;
-            if (D < 0) { ZB.le_J = ZB.le_W = 100; return; } //返回100表示无解
+            if (D < 0) { Coordinate.le_J = Coordinate.le_W = 100; return; } //返回100表示无解
             D = Math.Sqrt(D); if (x1 + B / A < 0) D = -D;
             x = (-B + D) / A; y = a * x + b; z = (c * x + d) / f;
-            ZB.le_R1 = Math.Sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1) + (z - z1) * (z - z1));
+            Coordinate.le_R1 = Math.Sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1) + (z - z1) * (z - z1));
             if (lh != 0) { lh = x; x = y; y = lh; }
-            ZB.le_W = Math.Atan(z / Math.Sqrt(x * x + y * y));
-            ZB.le_J = LunarHelper.rad2mrad(Math.Atan2(y, x));
+            Coordinate.le_W = Math.Atan(z / Math.Sqrt(x * x + y * y));
+            Coordinate.le_J = LunarHelper.rad2mrad(Math.Atan2(y, x));
         }
 
         #endregion

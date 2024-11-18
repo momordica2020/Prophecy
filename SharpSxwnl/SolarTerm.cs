@@ -7,11 +7,11 @@ namespace SharpSxwnl
     /// <summary>
     /// 节气信息(转换时新增的类)
     /// </summary>
-    public class JieQiInfo
+    public class SolarTerm
     {
         #region 构造函数
 
-        public JieQiInfo()
+        public SolarTerm()
         {
             this.Name = String.Empty;
             this.Time = String.Empty;
@@ -57,7 +57,7 @@ namespace SharpSxwnl
         /// <summary>
         /// 节气标志:  True - 节, False - 气
         /// </summary>
-        public bool JieOrQi { get; set; }
+        public bool IsJie { get; set; }
 
         /// <summary>
         /// 月建(地支), 仅对节论月建(气不论月建)

@@ -144,7 +144,7 @@ namespace SharpSxwnl
             string d = u.Lmc + (u.Lmc.Length < 2 ? "月" : "") + u.Ldc;
             if (u.Lleap != "闰")
             {
-                for (i = 0; i < obb.LunarFeasts.Length; i++)     // C#: 查表, 查找农历节假日
+                for (i = 0; i < obb.LunarFeasts.Count; i++)     // C#: 查表, 查找农历节假日
                 {
                     if (d == obb.LunarFeasts[i].Lmc)
                     {
@@ -164,12 +164,12 @@ namespace SharpSxwnl
             }
             if (u.Ljq.Length > 0)
             {
-                for (i = 0; i < obb.JieQiFeasts.Length; i++)    // C#: 查找是否有放假的节气
+                for (i = 0; i < obb.JieQiFeasts.Count; i++)    // C#: 查找是否有放假的节气
                 {
                     if (u.Ljq == obb.JieQiFeasts[i])               // C#: 匹配
                         break;
                 }
-                if (i < obb.JieQiFeasts.Length) { r.A += u.Ljq + " "; r.Fjia = 1; }
+                if (i < obb.JieQiFeasts.Count) { r.A += u.Ljq + " "; r.Fjia = 1; }
                 else r.B += u.Ljq + " ";
             }
 
@@ -201,7 +201,7 @@ namespace SharpSxwnl
         /// <param name="ob">日对象</param>
         public static void mingLiBaZi(double jd, double J, OB ob)
         {
-            mingLiBaZi(jd, J, ob, BaZiTypeS.Normal);
+            mingLiBaZi(jd, J, ob, BaZiTypeS.默认);
         }
 
 
@@ -217,11 +217,11 @@ namespace SharpSxwnl
             int i;
             string c;
             double v;
-            double jd2 = jd + JD.deltatT2(jd);      // 力学时
-            double w = XL.S_aLon(jd2 / 36525, -1);  // 此刻太阳视黄经
+            double jd2 = jd + JulianDay.deltatT2(jd);      // 力学时
+            double w = Ephemeris.S_aLon(jd2 / 36525, -1);  // 此刻太阳视黄经
             double k = LunarHelper.int2((w / LunarHelper.pi2 * 360 + 45 + 15 * 360) / 30);   // 1984年立春起算的节气数(不含中气)
-            jd += XL.shiCha2(jd2 / 36525) - J / Math.PI / 2;        // 本地真太阳时(使用低精度算法计算时差)
-            ob.bz_zty = JD.timeStr(jd);
+            jd += Ephemeris.shiCha2(jd2 / 36525) - J / Math.PI / 2;        // 本地真太阳时(使用低精度算法计算时差)
+            ob.bz_zty = JulianDay.timeStr(jd);
 
             jd += 13d / 24d;   // 转为前一日23点起算(原jd为本日中午12点起算)   // C#: 注意数据类型
             double D = Math.Floor(jd), SC = LunarHelper.int2((jd - D) * 12);   // 日数与时辰
@@ -232,15 +232,15 @@ namespace SharpSxwnl
             // C#: 新增的代码段, 计算南半球八字(仅纪月不同)
             switch (baziTypeS)
             {
-                case BaZiTypeS.TianChongDiChong:
+                case BaZiTypeS.天冲地冲:
                     ob.bz_jy = obb.Gan[(int)((v + 4) % 10)] + obb.Zhi[(int)((v + 6) % 12)];
                     break;
 
-                case BaZiTypeS.TianKeDiChong:
+                case BaZiTypeS.天克地冲:
                     ob.bz_jy = obb.Gan[(int)((v + 6) % 10)] + obb.Zhi[(int)((v + 6) % 12)];
                     break;
 
-                case BaZiTypeS.TianTongDiChong:
+                case BaZiTypeS.天同地冲:
                     ob.bz_jy = obb.Gan[(int)((v + 0) % 10)] + obb.Zhi[(int)((v + 6) % 12)];
                     break;
 
@@ -275,8 +275,8 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double qi_accurate(double W)
         {
-            double t = XL.S_aLon_t(W) * 36525;
-            return t - JD.deltatT2(t) + 8d / 24d;    // 精气
+            double t = Ephemeris.S_aLon_t(W) * 36525;
+            return t - JulianDay.deltatT2(t) + 8d / 24d;    // 精气
         }
 
 
@@ -287,8 +287,8 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double so_accurate(double W)
         {
-            double t = XL.MS_aLon_t(W) * 36525;
-            return t - JD.deltatT2(t) + 8d / 24d;    // 精朔
+            double t = Ephemeris.MS_aLon_t(W) * 36525;
+            return t - JulianDay.deltatT2(t) + 8d / 24d;    // 精朔
         }
 
 
@@ -327,7 +327,7 @@ namespace SharpSxwnl
         /// <param name="ob">日对象</param>
         public static void mingLiBaZiNormal(double jd, double J, OB ob)
         {
-            mingLiBaZiNormal(jd, J, ob, BaZiTypeS.Normal);
+            mingLiBaZiNormal(jd, J, ob, BaZiTypeS.默认);
         }
 
 
@@ -343,8 +343,8 @@ namespace SharpSxwnl
             int i;
             string c;
             double v;
-            double jd2 = jd + JD.deltatT2(jd);      // 力学时
-            double w = XL.S_aLon(jd2 / 36525, -1);  // 此刻太阳视黄经
+            double jd2 = jd + JulianDay.deltatT2(jd);      // 力学时
+            double w = Ephemeris.S_aLon(jd2 / 36525, -1);  // 此刻太阳视黄经
             double k = LunarHelper.int2((w / LunarHelper.pi2 * 360 + 45 + 15 * 360) / 30);   // 1984年立春起算的节气数(不含中气)
 
             //----------------------------------------------------------------------------------------------
@@ -352,7 +352,7 @@ namespace SharpSxwnl
             //----------------------------------------------------------------------------------------------
             jd += 0 - J / Math.PI / 2;     // 将格林尼治UT(J2000起算), 转换为本地时间, 不必考虑真太阳与平太阳时之间的时差
             ob.bz_zty = "";                // 真太阳时置空串
-            ob.bz_pty = JD.timeStr(jd);    // 计算平太阳时
+            ob.bz_pty = JulianDay.timeStr(jd);    // 计算平太阳时
 
             jd += 13d / 24d;   // 转为前一日23点起算(原jd为本日中午12点起算)   // C#: 注意数据类型
             double D = Math.Floor(jd), SC = LunarHelper.int2((jd - D) * 12);   // 日数与时辰
@@ -363,15 +363,15 @@ namespace SharpSxwnl
             // C#: 新增的代码段, 计算南半球八字(仅纪月不同)
             switch (baziTypeS)
             {
-                case BaZiTypeS.TianChongDiChong:
+                case BaZiTypeS.天冲地冲:
                     ob.bz_jy = obb.Gan[(int)((v + 4) % 10)] + obb.Zhi[(int)((v + 6) % 12)];
                     break;
 
-                case BaZiTypeS.TianKeDiChong:
+                case BaZiTypeS.天克地冲:
                     ob.bz_jy = obb.Gan[(int)((v + 6) % 10)] + obb.Zhi[(int)((v + 6) % 12)];
                     break;
 
-                case BaZiTypeS.TianTongDiChong:
+                case BaZiTypeS.天同地冲:
                     ob.bz_jy = obb.Gan[(int)((v + 0) % 10)] + obb.Zhi[(int)((v + 6) % 12)];
                     break;
 
@@ -403,10 +403,10 @@ namespace SharpSxwnl
         /// 从 Xml 对象中读取农历节日的定义
         /// </summary>
         /// <returns></returns>
-        private static xList<OB> getLunarFeasts()
+        private static List<OB> getLunarFeasts()
         {
             const string xPath = "SharpSxwnl/SxwnlData/Data[@Id = 'obb_getDayName']";
-            xList<OB> result = new xList<OB>();
+            List<OB> result = new List<OB>();
 
             if (LunarHelper.SxwnlXmlData != null)
             {
@@ -436,10 +436,10 @@ namespace SharpSxwnl
         /// 从 Xml 对象中读取农历节日的定义
         /// </summary>
         /// <returns></returns>
-        private static xList<string> getJieQiFeasts()
+        private static List<string> getJieQiFeasts()
         {
             const string xPath = "SharpSxwnl/SxwnlData/Data[@Id = 'obb_JieqiFjia']";
-            xList<string> result = new xList<string>();
+            List<string> result = new List<string>();
 
             if (LunarHelper.SxwnlXmlData != null)
             {
@@ -508,10 +508,10 @@ namespace SharpSxwnl
         private static string[] __DoubleZhi = new string[] { "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
                                                              "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥" };
         // 农历节日的定义
-        private static xList<OB> __LunarFeasts = obb.getLunarFeasts();
+        private static List<OB> __LunarFeasts = obb.getLunarFeasts();
 
         // 二十四节气假日的定义
-        private static xList<string> __JieQiFeasts = obb.getJieQiFeasts();
+        private static List<string> __JieQiFeasts = obb.getJieQiFeasts();
 
         #endregion
 
@@ -558,7 +558,7 @@ namespace SharpSxwnl
         /// <summary>
         /// 农历节日的定义
         /// </summary>
-        public static xList<OB> LunarFeasts
+        public static List<OB> LunarFeasts
         {
             get { return obb.__LunarFeasts; }
             set { obb.__LunarFeasts = value; }
@@ -567,7 +567,7 @@ namespace SharpSxwnl
         /// <summary>
         ///  二十四节气假日的定义
         /// </summary>
-        public static xList<string> JieQiFeasts
+        public static List<string> JieQiFeasts
         {
             get { return obb.__JieQiFeasts; }
             set { obb.__JieQiFeasts = value; }

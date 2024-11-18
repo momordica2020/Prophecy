@@ -11,14 +11,14 @@ namespace test
             Program p = new Program();
             Lunar lun = new Lunar();
             double curJD, curTZ;
-            sun_moon smc = new sun_moon();
+            SunMoon smc = new SunMoon();
 
             DateTime nowDT = DateTime.Now;
             curTZ = -8;//TimeZone.CurrentTimeZone.GetUtcOffset(nowDT).Negate().TotalHours;     // 中国: 东 8 区
             curJD = LunarHelper.NowUTCmsSince19700101(nowDT) / 86400000d - 10957.5 - curTZ / 24d; //J2000起算的儒略日数(当前本地时间)
-            JD.setFromJD(curJD + LunarHelper.J2000);
-            string Cal_y = JD.Y.ToString();
-            string Cal_m = JD.M.ToString();
+            JulianDay.setFromJDay(curJD + LunarHelper.J2000);
+            string Cal_y = JulianDay.Y.ToString();
+            string Cal_m = JulianDay.M.ToString();
 
             curJD = LunarHelper.int2(curJD + 0.5);
 
@@ -35,7 +35,7 @@ namespace test
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine(LunarHelper.Ayear2year(ob.y) + "年" + ob.m + "月" + ob.d + "日");//公历日期
-            sb.AppendLine(ob.Lyear3 + "年 星期" + JD.Weeks[(int)(ob.week)] + " " + ob.XiZ);// 丁酉年 星期日 狮子座
+            sb.AppendLine(ob.Lyear3 + "年 星期" + JulianDay.Weeks[(int)(ob.week)] + " " + ob.XiZ);// 丁酉年 星期日 狮子座
             sb.AppendLine(ob.Lyear4 + "年 " + ob.Lleap + ob.Lmc + "月" + (ob.Ldn > 29 ? "大 " : "小 ") + ob.Ldc + "日");// 4715年 润六月大 初八日
             sb.AppendLine(ob.Lyear2 + "年 " + ob.Lmonth2 + "月 " + ob.Lday2 + "日");// 丁酉年 丁未月 戊午日
             sb.AppendLine("回历[" + ob.Hyear + "年" + ob.Hmonth + "月" + ob.Hday + "日]");//回历[1438年11月6日]
@@ -52,7 +52,7 @@ namespace test
             SZJ.calcRTS(jd, 1, vJ, vW, tz); //升降计算,使用北时时间,tz=-8指东8区,jd+tz应在当地正午左右(误差数小时不要紧)
             string s;
             LunarInfoListT<double> ob = SZJ.rts[0];
-            JD.setFromJD(jd + LunarHelper.J2000);
+            JulianDay.setFromJDay(jd + LunarHelper.J2000);
             s = "日出 " + ob.s + " 日落 " + ob.j + " 中天 " + ob.z + "\r\n"
                         + "月出 " + ob.Ms + " 月落 " + ob.Mj + " 月中 " + ob.Mz + "\r\n"
                         + "晨起天亮 " + ob.c + " 晚上天黑 " + ob.h + "\r\n"

@@ -98,11 +98,11 @@
       <FileName>ZB.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="SharpSxwnl.xList&lt;T&gt;" Collapsed="true">
+  <Class Name="SharpSxwnl.List&lt;T&gt;" Collapsed="true">
     <Position X="4" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>xList.cs</FileName>
+      <FileName>List.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SharpSxwnl.JieQiInfo" Collapsed="true">

@@ -7,7 +7,7 @@ namespace SharpSxwnl
     /// <summary>
     /// 星历类
     /// </summary>
-    public static class XL
+    public static class Ephemeris
     {
 
         #region 私有数组成员定义(注: 初始转换时为公共字段, 已改写)
@@ -378,7 +378,7 @@ namespace SharpSxwnl
             int i, j;
             double[] F;
             double N, v = 0, tn = 1, c;
-            if (ob == XL.EL)
+            if (ob == Ephemeris.EL)
             {
                 double t2 = t * t, t3 = t2 * t, t4 = t3 * t, t5 = t4 * t; //千年数的各次方
                 v += 1753469512 + 6283319653318 * t + 529674 * t2 + 432 * t3 - 1124 * t4 - 9 * t5 + 630 * Math.Cos(6 + 3 * t); //地球平黄经(已拟合DE406)
@@ -407,9 +407,9 @@ namespace SharpSxwnl
         public static void E_coord(double t, double[] re, double n1, double n2, double n3)
         {
             t /= 10;
-            re[0] = XL.Enn(XL.EL, t, n1);
-            re[1] = XL.Enn(XL.EB, t, n2);
-            re[2] = XL.Enn(XL.ER, t, n3);
+            re[0] = Ephemeris.Enn(Ephemeris.EL, t, n1);
+            re[1] = Ephemeris.Enn(Ephemeris.EB, t, n2);
+            re[2] = Ephemeris.Enn(Ephemeris.ER, t, n3);
         }
 
 
@@ -421,7 +421,7 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double E_Lon(double t, double n)
         {
-            return XL.Enn(XL.EL, t / 10, n);
+            return Ephemeris.Enn(Ephemeris.EL, t / 10, n);
         }
 
 
@@ -439,7 +439,7 @@ namespace SharpSxwnl
             double[] F;
             double N, v = 0, tn = 1, c;
             double t2 = t * t, t3 = t2 * t, t4 = t3 * t, t5 = t4 * t, tx = t - 10;
-            if (ob == XL.ML)
+            if (ob == Ephemeris.ML)
             {
                 v += (3.81034409 + 8399.684730072 * t - 3.319e-05 * t2 + 3.11e-08 * t3 - 2.033e-10 * t4) * LunarHelper.rad; //月球平黄经(弧度)
                 v += 5028.792262 * t + 1.1124406 * t2 + 0.00007699 * t3 - 0.000023479 * t4 - 0.0000000178 * t5;  //岁差(角秒)
@@ -460,7 +460,7 @@ namespace SharpSxwnl
                 // v += c * tn;     // C#: 注释此句并改写如下
                 v += c * tn * Math.Pow(t, i);
             }
-            if (ob != XL.MR) v /= LunarHelper.rad;
+            if (ob != Ephemeris.MR) v /= LunarHelper.rad;
             return v;
         }
 
@@ -476,9 +476,9 @@ namespace SharpSxwnl
         /// <param name="n3"></param>
         public static void M_coord(double t, double[] re, double n1, double n2, double n3)
         {
-            re[0] = XL.Mnn(XL.ML, t, n1);
-            re[1] = XL.Mnn(XL.MB, t, n2);
-            re[2] = XL.Mnn(XL.MR, t, n3);
+            re[0] = Ephemeris.Mnn(Ephemeris.ML, t, n1);
+            re[1] = Ephemeris.Mnn(Ephemeris.MB, t, n2);
+            re[2] = Ephemeris.Mnn(Ephemeris.MR, t, n3);
         }
         
         /// <summary>
@@ -491,9 +491,9 @@ namespace SharpSxwnl
         /// <param name="n3"></param>
         public static void M_coord(double t, LunarInfoListT<double> re, double n1, double n2, double n3)    // C#: 新扩展出来的方法
         {
-            re[0] = XL.Mnn(XL.ML, t, n1);
-            re[1] = XL.Mnn(XL.MB, t, n2);
-            re[2] = XL.Mnn(XL.MR, t, n3);
+            re[0] = Ephemeris.Mnn(Ephemeris.ML, t, n1);
+            re[1] = Ephemeris.Mnn(Ephemeris.MB, t, n2);
+            re[2] = Ephemeris.Mnn(Ephemeris.MR, t, n3);
         }
 
 
@@ -506,7 +506,7 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double M_Lon(double t, double n)
         {
-            return XL.Mnn(XL.ML, t, n);
+            return Ephemeris.Mnn(Ephemeris.ML, t, n);
         }
 
 
@@ -556,7 +556,7 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double MS_aLon(double t, double Mn, double Sn)
         {
-            return XL.M_Lon(t, Mn) + ZB.gxc_moonLon(t) - (XL.E_Lon(t, Sn) + ZB.gxc_sunLon(t) + Math.PI);
+            return Ephemeris.M_Lon(t, Mn) + Coordinate.gxc_moonLon(t) - (Ephemeris.E_Lon(t, Sn) + Coordinate.gxc_sunLon(t) + Math.PI);
         }
 
 
@@ -569,7 +569,7 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double S_aLon(double t, double n)
         {
-            return XL.E_Lon(t, n) + ZB.nutationLon(t) + ZB.gxc_sunLon(t) + Math.PI; //注意，这里的章动计算很耗时
+            return Ephemeris.E_Lon(t, n) + Coordinate.nutationLon(t) + Coordinate.gxc_sunLon(t) + Math.PI; //注意，这里的章动计算很耗时
         }
 
 
@@ -581,9 +581,9 @@ namespace SharpSxwnl
         public static double E_Lon_t(double W)
         {
             double t, v = 628.3319653318;
-            t = (W - 1.75347) / v; v = XL.E_v(t);   //v的精度0.03%，详见原文
-            t += (W - XL.E_Lon(t, 10)) / v; v = XL.E_v(t);   //再算一次v有助于提高精度,不算也可以
-            t += (W - XL.E_Lon(t, -1)) / v;
+            t = (W - 1.75347) / v; v = Ephemeris.E_v(t);   //v的精度0.03%，详见原文
+            t += (W - Ephemeris.E_Lon(t, 10)) / v; v = Ephemeris.E_v(t);   //再算一次v有助于提高精度,不算也可以
+            t += (W - Ephemeris.E_Lon(t, -1)) / v;
             return t;
         }
 
@@ -597,9 +597,9 @@ namespace SharpSxwnl
         {
             double t, v = 8399.70911033384;
             t = (W - 3.81034) / v;
-            t += (W - XL.M_Lon(t, 3)) / v; v = XL.M_v(t);  //v的精度0.5%，详见原文
-            t += (W - XL.M_Lon(t, 20)) / v;
-            t += (W - XL.M_Lon(t, -1)) / v;
+            t += (W - Ephemeris.M_Lon(t, 3)) / v; v = Ephemeris.M_v(t);  //v的精度0.5%，详见原文
+            t += (W - Ephemeris.M_Lon(t, 20)) / v;
+            t += (W - Ephemeris.M_Lon(t, -1)) / v;
             return t;
         }
 
@@ -613,9 +613,9 @@ namespace SharpSxwnl
         {
             double t, v = 7771.37714500204;
             t = (W + 1.08472) / v;
-            t += (W - XL.MS_aLon(t, 3, 3)) / v; v = XL.M_v(t) - XL.E_v(t);  //v的精度0.5%，详见原文
-            t += (W - XL.MS_aLon(t, 20, 10)) / v;
-            t += (W - XL.MS_aLon(t, -1, 60)) / v;
+            t += (W - Ephemeris.MS_aLon(t, 3, 3)) / v; v = Ephemeris.M_v(t) - Ephemeris.E_v(t);  //v的精度0.5%，详见原文
+            t += (W - Ephemeris.MS_aLon(t, 20, 10)) / v;
+            t += (W - Ephemeris.MS_aLon(t, -1, 60)) / v;
             return t;
         }
 
@@ -628,9 +628,9 @@ namespace SharpSxwnl
         public static double S_aLon_t(double W)
         {
             double t, v = 628.3319653318;
-            t = (W - 1.75347 - Math.PI) / v; v = XL.E_v(t); //v的精度0.03%，详见原文
-            t += (W - XL.S_aLon(t, 10)) / v; v = XL.E_v(t); //再算一次v有助于提高精度,不算也可以
-            t += (W - XL.S_aLon(t, -1)) / v;
+            t = (W - 1.75347 - Math.PI) / v; v = Ephemeris.E_v(t); //v的精度0.03%，详见原文
+            t += (W - Ephemeris.S_aLon(t, 10)) / v; v = Ephemeris.E_v(t); //再算一次v有助于提高精度,不算也可以
+            t += (W - Ephemeris.S_aLon(t, -1)) / v;
             return t;
         }
 
@@ -646,7 +646,7 @@ namespace SharpSxwnl
             t = (W + 1.08472) / v;
             double L, t2 = t * t;
             t -= (-0.00003309 * t2 + 0.10976 * Math.Cos(0.784758 + 8328.6914246 * t + 0.000152292 * t2) + 0.02224 * Math.Cos(0.18740 + 7214.0628654 * t - 0.00021848 * t2) - 0.03342 * Math.Cos(4.669257 + 628.307585 * t)) / v;
-            L = XL.M_Lon(t, 20) - (4.8950632 + 628.3319653318 * t + 0.000005297 * t * t + 0.0334166 * Math.Cos(4.669257 + 628.307585 * t) + 0.0002061 * Math.Cos(2.67823 + 628.307585 * t) * t + 0.000349 * Math.Cos(4.6261 + 1256.61517 * t) - 20.5 / LunarHelper.rad);
+            L = Ephemeris.M_Lon(t, 20) - (4.8950632 + 628.3319653318 * t + 0.000005297 * t * t + 0.0334166 * Math.Cos(4.669257 + 628.307585 * t) + 0.0002061 * Math.Cos(2.67823 + 628.307585 * t) * t + 0.000349 * Math.Cos(4.6261 + 1256.61517 * t) - 20.5 / LunarHelper.rad);
             v = 7771.38 - 914 * Math.Sin(0.7848 + 8328.691425 * t + 0.0001523 * t * t) - 179 * Math.Sin(2.543 + 15542.7543 * t) - 160 * Math.Sin(0.1874 + 7214.0629 * t);
             t += (W - L) / v;
             return t;
@@ -663,7 +663,7 @@ namespace SharpSxwnl
             double t, v = 628.3319653318;
             t = (W - 1.75347 - Math.PI) / v;
             t -= (0.000005297 * t * t + 0.0334166 * Math.Cos(4.669257 + 628.307585 * t) + 0.0002061 * Math.Cos(2.67823 + 628.307585 * t) * t) / v;
-            t += (W - XL.E_Lon(t, 8) - Math.PI + (20.5 + 17.2 * Math.Sin(2.1824 - 33.75705 * t)) / LunarHelper.rad) / v;
+            t += (W - Ephemeris.E_Lon(t, 8) - Math.PI + (20.5 + 17.2 * Math.Sin(2.1824 - 33.75705 * t)) / LunarHelper.rad) / v;
             return t;
         }
 
@@ -712,13 +712,13 @@ namespace SharpSxwnl
             double[] z = new double[2];    // C#: 待定(?)
             dL = -17.2 * Math.Sin(2.1824 - 33.75705 * t) / LunarHelper.rad; //黄经章
             dE = 9.2 * Math.Cos(2.1824 - 33.75705 * t) / LunarHelper.rad; //交角章
-            E = ZB.hcjj(t) + dE; //真黄赤交角
+            E = Coordinate.ObliquityOfEcliptic(t) + dE; //真黄赤交角
 
             //地球坐标
-            z[0] = XL.E_Lon(t, 50) + Math.PI + ZB.gxc_sunLon(t) + dL;
+            z[0] = Ephemeris.E_Lon(t, 50) + Math.PI + Coordinate.gxc_sunLon(t) + dL;
             z[1] = -(2796 * Math.Cos(3.1987 + 8433.46616 * t) + 1016 * Math.Cos(5.4225 + 550.75532 * t) + 804 * Math.Cos(3.88 + 522.3694 * t)) / 1000000000;
 
-            ZB.llrConv(z, E); //z太阳地心赤道坐标
+            Coordinate.llrConv(z, E); //z太阳地心赤道坐标
             z[0] -= dL * Math.Cos(E);
 
             L = LunarHelper.rad2mrad(L - z[0]);
@@ -737,8 +737,8 @@ namespace SharpSxwnl
             double L = (1753469512 + 628331965331.8 * t + 5296.74 * t * t) / 1000000000 + Math.PI;
             double[] z = new double[2];    // C#: 待定(?)
             double E = (84381.4088 - 46.836051 * t) / LunarHelper.rad;
-            z[0] = XL.E_Lon(t, 5) + Math.PI; z[1] = 0;     // 地球坐标
-            ZB.llrConv(z, E);     // z太阳地心赤道坐标
+            z[0] = Ephemeris.E_Lon(t, 5) + Math.PI; z[1] = 0;     // 地球坐标
+            Coordinate.llrConv(z, E);     // z太阳地心赤道坐标
             L = LunarHelper.rad2mrad(L - z[0]);
             if (L > Math.PI) L -= LunarHelper.pi2;
             return L / LunarHelper.pi2;     // 单位是周(天)

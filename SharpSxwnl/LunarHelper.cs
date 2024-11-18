@@ -1,76 +1,4 @@
-﻿/*-----------------------------------------------------------------------------------------------------------------------------------
-   说明: 主要代码由许剑伟先生的寿星万年历(v4.11)源代码转换而来, 并进行了适当的改写, 如果有疑问, 请参阅原来的 Javascript 代码
-   转换人: ynyuxiang(foxer12345@126.com)
- -----------------------------------------------------------------------------------------------------------------------------------
-   转换规范: 
-       1. 避免使用 C# 保留字作为变量(字段名等), 在必要时, 把原来 Javascript 代码中的相关变量名末尾添加 2 个下划线作为新的变量名, 
-          或者添加其数据类型
-       2. 事先声明变量, 尽量避免使用 var 来声明变量
-       3. 尽量保留原注释, 对原注释中的部分专有名词(如"物件"等), 不作修改
-       4. 对新增的特定注释, 以 "C#" 字样作为开始标识
-       5. 对于特殊的转换, 在转换代码中给出必要的说明
-       6. 对于 Javascript 代码中有自定义属性的数组, 采用派生类来解决此问题
-       7. 对数值数据, 除可以明确确定的数据类型外, 均采用 double 类型
-       8. 对于原 Javascript 中的独立函数, 分别转换到特定的类中
-       9. 对于不太确定的(新增)注释, 在尾部加上 "(?)" 标识
-      10. 对于新增的私有字段, 如果被封装后用于保存公共属性的值, 则在此公共属性名前添加 2 个下划线作为私有字段的名称
-      11. 转换时新增加的属性, 方法等, 通常应放到文件的最下面, 并说明是新增的内容
-  -----------------------------------------------------------------------------------------------------------------------------------
-   需要考虑的事项:
-       1. 在 C# 中的数值计算精度(可以保证)
-       2. 在 C# 中不允许使用 Substring 方法超出字符串长度去截取子串, 因此必须进行必要的调整
-       3. 在 C# 中数值数据运算的问题:
-                  例如:  表达式 8/24 的值为0(与 Javascript 中不同), 但表达式 8d/24d 的值为 0.333333333333333...
-  -----------------------------------------------------------------------------------------------------------------------------------
-   尚未转换:
-       [eph.js]
-              独立函数 Number.prototype.toFixed : 直接改用 ToString() 方法来实现
-              日食批量快速计算器物件 rsPL :       作为精简版本, 不转换
-              月食快速计算器物件 ysPL :           作为精简版本, 不转换
-       [tools.js]
-              独立函数 getCookie(name) :       不需要
-              独立函数 setCookie(name,value) : 不需要
-              独立函数 addOp(sel,v,t) :        不需要
-       [vml.js]
-              整个 vml.js 文件:    作为精简版本, 不转换
-  -----------------------------------------------------------------------------------------------------------------------------------
-   待完成的工作:
-       [  ] 1. 拟加入的信息
-               [√] 1.1 每日的 12 建信息(依次为: 建, 除, 满, 平, 定, 执, 破, 危, 成, 收, 开, 闭)
-               [  ] ......
-       [√] 2. 对于原算法转换到 C# 以后, 需要作出的调整(考虑性能和效率等, 如: 字符串处理)
-       [√] 3. 将首次转换时使用的 myArraryList 改写为 List<T> 类, 取消原代码中涉及拆箱时的显式类型转换
-       [×] 4. 修改引用本类的泛型方法的相关代码 ?  (注: 由于 C# 编译器可以自动推断其类型, 因此不作处理)
-       [√] 5. 把原 Index.htm 中的某些 Javascript 函数调整成为独立的方法
-       [√] 6. 改写部分数据硬编码的代码(如: 历史纪年表数据, 节假日的定义, 经纬度数据, 时区数据等)
-               [√] JnbArrayList.cs
-               [√] JWdata.cs
-               [√] oba.cs
-               [√] obb.cs
-               [×] 本命名空间中的其余 *.cs 文件 :  不改写
-       [√] 7. 增加常规八字计算方法, 即不计算真太阳时(参阅 obb.cs 中的 mingLiBaZiNormal 方法)
-       [√] 8. 适当地添加注释
-       [  ] 9. 拟加入的功能
-               [√] 9.1 指定某日, 计算出它的所属节(气), 上一节(气), 下一节(气)信息
-               [  ] ......
-       [√]10. 使用自实现属性来改写公共字段(有外部引用时), 或把公共字段调整为私有字段(无外部引用时), 但需要注意初值问题
-               [√] JD.cs
-               [√] JWdata.cs
-               [√] Lunar.cs
-               [√] LunarInfoListT.cs
-               [√] ob.cs
-               [√] oba.cs
-               [√] obb.cs
-               [√] SSQ.cs
-               [√] sun_moon.cs
-               [√] SZJ.cs
-               [√] XL.cs
-               [√] ZB.cs
-               [×] 本命名空间中的其余 *.cs 文件 :  不存在上述情况, 无需改写
------------------------------------------------------------------------------------------------------------------------------------*/
-
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -85,8 +13,6 @@ namespace SharpSxwnl
     /// </summary>
     public static class LunarHelper
     {
-
-        #region 从 eph.js 中转换的独立方法与常量定义
 
 
         #region 常量定义
@@ -277,11 +203,8 @@ namespace SharpSxwnl
         #endregion 公共方法
 
 
-        #endregion
 
 
-
-        #region 从 tools.js 中转换的独立方法
 
 
         /// <summary>
@@ -395,11 +318,7 @@ namespace SharpSxwnl
         }
         
 
-        #endregion
-
-
-
-        #region 从 Index.htm 中提取出来的独立方法
+     
 
         /// <summary>
         /// 计算八字
@@ -420,21 +339,21 @@ namespace SharpSxwnl
             if (y == -10000)
                 return String.Empty;
 
-            string timeName = (type == BaZiType.ZtyBaZi ? "真太阳 " :
-                                 (type == BaZiType.PtyBaZi ? "平太阳 " : "北京时间 "));
+            string timeName = (type == BaZiType.真太阳时八字 ? "真太阳 " :
+                                 (type == BaZiType.平太阳时八字 ? "平太阳 " : "北京时间 "));
 
             double t = LunarHelper.timeStr2hour(time);
 
             double longitude;
-            if (type == BaZiType.EL120BaZi)
+            if (type == BaZiType.北京时间八字)
                 longitude = LunarHelper.str2rad("-120°");    // 解析东经120°经度为弧度
             else
                 longitude = LunarHelper.str2rad(longitudeStr);    // 解析经度为弧度
 
-            double jd = JD.JD__(y, LunarHelper.VAL(month.ToString()), 
+            double jd = JulianDay.JD__(y, LunarHelper.VAL(month.ToString()), 
                                 LunarHelper.VAL(day.ToString()) + t / 24);
 
-            if (type == BaZiType.ZtyBaZi)
+            if (type == BaZiType.真太阳时八字)
             {
                 obb.mingLiBaZi(jd + curTZ / 24 - LunarHelper.J2000, longitude, ob, baziTypes);    // 八字计算, 独立于 Lunar 类
                 timeName += ob.bz_zty;
@@ -446,10 +365,10 @@ namespace SharpSxwnl
             }
 
             // C#: 新增的代码段
-            JD.setFromJD(jd);
-            double yearAjusted = JD.Y;
-            double monthAjusted = JD.M;
-            double dayAjusted = JD.D;
+            JulianDay.setFromJDay(jd);
+            double yearAjusted = JulianDay.Y;
+            double monthAjusted = JulianDay.M;
+            double dayAjusted = JulianDay.D;
 
             return "[日标]：" + "公历 " + yearAjusted + "-" + monthAjusted + "-" + dayAjusted + " 儒略日数 " + LunarHelper.int2(jd + 0.5) + 
                                 " 距2000年首" + LunarHelper.int2(jd + 0.5 - LunarHelper.J2000) + "日"
@@ -459,12 +378,7 @@ namespace SharpSxwnl
 
         }
         
-        #endregion
-
-        
-
-
-        #region 转换时新增加的方法
+  
 
         /// <summary>
         /// 将度分秒转换为弧度值(只作简单转化, 要求传递的格式严格遵守"度分秒"的格式, 如: 0°0'31.49"
@@ -643,11 +557,8 @@ namespace SharpSxwnl
             return xmlDoc;
         }
 
-        #endregion
+   
 
-
-
-        #region 转换时新增的属性和字段
 
         // 保存 Xml 数据
         private static XmlDocument __SxwnlXmlData = LunarHelper.LoadXmlData();
@@ -660,8 +571,6 @@ namespace SharpSxwnl
             get { return LunarHelper.__SxwnlXmlData; }
             set { LunarHelper.__SxwnlXmlData = value; }
         }
-
-        #endregion
 
     }
 
@@ -683,17 +592,17 @@ namespace SharpSxwnl
         /// <summary>
         /// 当地真太阳时八字
         /// </summary>
-        ZtyBaZi,
+        真太阳时八字,
 
         /// <summary>
         /// 当地平太阳时八字
         /// </summary>
-        PtyBaZi,
+        平太阳时八字,
 
         /// <summary>
         /// 北京时间八字(东经120度)
         /// </summary>
-        EL120BaZi
+        北京时间八字
     }
 
 
@@ -705,22 +614,22 @@ namespace SharpSxwnl
         /// <summary>
         /// 常规(北半球八字)
         /// </summary>
-        Normal,
+        默认,
 
         /// <summary>
         /// 南半球八字: 天冲地冲(月天干地支均与北半球的取法相冲)
         /// </summary>
-        TianChongDiChong,
+        天冲地冲,
 
         /// <summary>
         /// 南半球八字: 天克地冲(月地支与北半球的取法相冲, 按五虎遁月法排月天干)
         /// </summary>
-        TianKeDiChong,
+        天克地冲,
 
         /// <summary>
         /// 南半球八字: 天同地冲(月地支与北半球的取法相冲, 月天干与北半球的取法相同)
         /// </summary>
-        TianTongDiChong
+        天同地冲
 
     }
 
@@ -731,22 +640,22 @@ namespace SharpSxwnl
     /// <summary>
     /// 计算节气的类型
     /// </summary>
-    public enum CalcJieQiType
+    public enum 计算节气的类型
     {
         /// <summary>
         /// 仅计算节
         /// </summary>
-        CalcJie,
+        仅计算节,
 
         /// <summary>
         /// 仅计算气
         /// </summary>
-        CalcQi, 
+        仅计算气, 
 
         /// <summary>
         /// 计算节和气
         /// </summary>
-        CalcBoth
+        计算节和气
     }
     #endregion 计算节气的类型
 
