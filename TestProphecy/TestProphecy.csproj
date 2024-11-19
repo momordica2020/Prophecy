@@ -13,6 +13,6 @@
     <Folder Include="Properties\DataSources\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SharpSxwnl\SharpSxwnl.csproj" />
+    <ProjectReference Include="..\Prophecy\Prophecy.csproj" />
   </ItemGroup>
 </Project>

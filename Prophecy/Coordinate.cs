@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SharpSxwnl
+namespace Prophecy
 {
     /// <summary>
     /// 坐标类
     /// </summary>
     public static class Coordinate
     {
-        #region 公共属性(注: 初始转换时为字段, 已改写为自动实现的属性)
-
+     
         /// <summary>
         /// 黄经章动
         /// </summary>
@@ -36,9 +35,7 @@ namespace SharpSxwnl
         /// </summary>
         public static double le_R1 { get; set; }    // = 0;
 
-        #endregion
-
-
+     
 
         /// <summary>
         /// 章动计算时使用的数据(?)
@@ -58,8 +55,7 @@ namespace SharpSxwnl
 
 
 
-        #region 公共方法
-
+      
         /// <summary>
         /// 球面坐标旋转
         /// </summary>
@@ -73,7 +69,7 @@ namespace SharpSxwnl
             double sinW = Math.Sin(JW[1]), cosW = Math.Cos(JW[1]), tanW = Math.Tan(JW[1]);
             JW[0] = Math.Atan2(sinJ * cosE - tanW * sinE, cosJ);
             JW[1] = Math.Asin(cosE * sinW + sinE * cosW * sinJ);
-            JW[0] = LunarHelper.rad2mrad(JW[0]);
+            JW[0] = Util.rad2mrad(JW[0]);
         }
 
         /// <summary>
@@ -91,7 +87,7 @@ namespace SharpSxwnl
             double tanW = Math.Tan((JW[1]));
             JW[0] = Math.Atan2(sinJ * cosE - tanW * sinE, cosJ);
             JW[1] = Math.Asin(cosE * sinW + sinE * cosW * sinJ);
-            JW[0] = LunarHelper.rad2mrad((JW[0]));
+            JW[0] = Util.rad2mrad((JW[0]));
         }
 
 
@@ -123,7 +119,7 @@ namespace SharpSxwnl
         { 
             q[2] = Math.Sqrt(x * x + y * y + z * z);
             q[1] = Math.Asin(z / q[2]);
-            q[0] = LunarHelper.rad2mrad(Math.Atan2(y, x));
+            q[0] = Util.rad2mrad(Math.Atan2(y, x));
         }
 
 
@@ -144,8 +140,8 @@ namespace SharpSxwnl
                 dL += (B[i + 3] + a) * Math.Sin(c);
                 dE += B[i + 4] * Math.Cos(c);
             }
-            Coordinate.dL = dL / 100 / LunarHelper.rad;  //黄经章动
-            Coordinate.dE = dE / 100 / LunarHelper.rad;  //交角章动
+            Coordinate.dL = dL / 100 / Util.rad;  //黄经章动
+            Coordinate.dE = dE / 100 / Util.rad;  //交角章动
         }
 
 
@@ -165,7 +161,7 @@ namespace SharpSxwnl
                 if (i == 0) a = -1.742 * t; else a = 0;
                 dL += (B[i + 3] + a) * Math.Sin(B[i] + B[i + 1] * t + B[i + 2] * t2);
             }
-            return dL / 100 / LunarHelper.rad;
+            return dL / 100 / Util.rad;
         }
 
 
@@ -177,7 +173,7 @@ namespace SharpSxwnl
         public static double ObliquityOfEcliptic(double t)
         {
             double t2 = t * t, t3 = t2 * t, t4 = t3 * t;
-            return (84381.4088 - 46.836051 * t - 0.0001667 * t2 - 0.00199911 * t3 - 0.000000523 * t4) / LunarHelper.rad;
+            return (84381.4088 - 46.836051 * t - 0.0001667 * t2 - 0.00199911 * t3 - 0.000000523 * t4) / Util.rad;
         }
 
 
@@ -192,7 +188,7 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double j1_j2(double J1, double W1, double J2, double W2)
         {
-            double dJ = LunarHelper.rad2rrad(J1 - J2), dW = W1 - W2;
+            double dJ = Util.rad2rrad(J1 - J2), dW = W1 - W2;
             if (Math.Abs(dJ) < 1 / 1000 && Math.Abs(dW) < 1 / 1000)
             {
                 dJ *= Math.Cos((W1 + W2) / 2);
@@ -212,8 +208,8 @@ namespace SharpSxwnl
         public static double gst(double T, double dt)
         {
             double t = (T + dt) / 36525, t2 = t * t, t3 = t2 * t, t4 = t3 * t;
-            return LunarHelper.pi2 * (0.7790572732640 + 1.00273781191135448 * T) //严格说这里的T是UT,下一行的t是力学时(世纪数)
-                + (0.014506 + 4612.15739966 * t + 1.39667721 * t2 - 0.00009344 * t3 + 0.00001882 * t4) / LunarHelper.rad;
+            return Util.pi2 * (0.7790572732640 + 1.00273781191135448 * T) //严格说这里的T是UT,下一行的t是力学时(世纪数)
+                + (0.014506 + 4612.15739966 * t + 1.39667721 * t2 - 0.00009344 * t3 + 0.00001882 * t4) / Util.rad;
         }
 
 
@@ -226,7 +222,7 @@ namespace SharpSxwnl
         {
             double v = -0.043126 + 628.301955 * t - 0.000002732 * t * t; //平近点角
             double e = 0.016708634 - 0.000042037 * t - 0.0000001267 * t * t;
-            return (-20.49552 * (1 + e * Math.Cos(v))) / LunarHelper.rad; //黄经光行差
+            return (-20.49552 * (1 + e * Math.Cos(v))) / Util.rad; //黄经光行差
         }
 
 
@@ -259,7 +255,7 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double gxc_moonLat(double t)
         {
-            return 0.063 * Math.Sin(0.057 + 8433.4662 * t + 0.000064 * t * t) / LunarHelper.rad;
+            return 0.063 * Math.Sin(0.057 + 8433.4662 * t + 0.000064 * t * t) / Util.rad;
         }
 
 
@@ -295,13 +291,13 @@ namespace SharpSxwnl
         public static void parallax(double[] z, double H, double fa, double high)
         {
             double dw = 1d;
-            if (z[2] < 500) dw = LunarHelper.cs_AU;
+            if (z[2] < 500) dw = Util.cs_AU;
             z[2] *= dw;
             double r0, x0, y0, z0, f = 0.99664719;
             double u = Math.Atan(f * Math.Tan(fa));
             double g = z[0] + H;
-            r0 = LunarHelper.cs_rEar * Math.Cos(u) + high * Math.Cos(fa); //站点与地地心向径的赤道投影长度
-            z0 = LunarHelper.cs_rEar * Math.Sin(u) * f + high * Math.Sin(fa); //站点与地地心向径的轴向投影长度
+            r0 = Util.cs_rEar * Math.Cos(u) + high * Math.Cos(fa); //站点与地地心向径的赤道投影长度
+            z0 = Util.cs_rEar * Math.Sin(u) * f + high * Math.Sin(fa); //站点与地地心向径的轴向投影长度
             x0 = r0 * Math.Cos(g);
             y0 = r0 * Math.Sin(g);
 
@@ -326,7 +322,7 @@ namespace SharpSxwnl
         {
             double x1 = R1 * Math.Cos(W1) * Math.Cos(J1), y1 = R1 * Math.Cos(W1) * Math.Sin(J1), z1 = R1 * Math.Sin(W1);
             double x2 = R2 * Math.Cos(W2) * Math.Cos(J2), y2 = R2 * Math.Cos(W2) * Math.Sin(J2), z2 = R2 * Math.Sin(W2);
-            double dx = x2 - x1, dy = y2 - y1, dz = z2 - z1, f = 0.99664719, r = LunarHelper.cs_rEar; //直线参数及地球参数
+            double dx = x2 - x1, dy = y2 - y1, dz = z2 - z1, f = 0.99664719, r = Util.cs_rEar; //直线参数及地球参数
             double x, y, z, lh = 0;
             if (Math.Abs(dx) < Math.Abs(dy)) //必要时仑换
             { lh = dx; dx = dy; dy = lh; lh = x1; x1 = y1; y1 = lh; lh = 1; }
@@ -338,10 +334,9 @@ namespace SharpSxwnl
             Coordinate.le_R1 = Math.Sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1) + (z - z1) * (z - z1));
             if (lh != 0) { lh = x; x = y; y = lh; }
             Coordinate.le_W = Math.Atan(z / Math.Sqrt(x * x + y * y));
-            Coordinate.le_J = LunarHelper.rad2mrad(Math.Atan2(y, x));
+            Coordinate.le_J = Util.rad2mrad(Math.Atan2(y, x));
         }
 
-        #endregion
-
+        
     }
 }

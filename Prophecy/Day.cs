@@ -2,29 +2,22 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SharpSxwnl
+namespace Prophecy
 {
     /// <summary>
     /// 日对象
     /// </summary>
-    public class OB
+    public class Day
     {
-        #region 构造函数
-        
-        public OB()
+      
+        public Day()
         {
-            this.所属节气 = new SolarTerm();
-            this.前一节气 = new SolarTerm();
-            this.下一节气 = new SolarTerm();
+            this.ST = new SolarTerm();
+            this.STlast = new SolarTerm();
+            this.STnext = new SolarTerm();
         }
 
-        #endregion 构造函数
 
-
-        
-        #region 公共属性(注: 初始转换时为公共字段, 已改写)
-
-        #region 日的公历信息
 
         /// <summary>
         /// 2000.0起算儒略日,北京时12:00
@@ -76,11 +69,9 @@ namespace SharpSxwnl
         /// </summary>
         public double weekN { get; set; }    // = 0;    // 本月的总周数
 
-        #endregion
+    
 
-
-
-        #region 日的农历信息
+       
 
         /// <summary>
         /// 距农历月首的编移量,0对应初一
@@ -138,8 +129,7 @@ namespace SharpSxwnl
         public string Lmc2 { get; set; }    // = "";    // 下个月名称,判断除夕时要用到
 
 
-        #region 日的农历纪年、月、日、时及星座
-
+      
         /// <summary>
         /// 农历纪年(10进制,1984年起算,分界点可以是立春也可以是春节,在程序中选择一个)
         /// </summary>
@@ -175,13 +165,10 @@ namespace SharpSxwnl
         /// </summary>
         public string XiZ { get; set; }    // = "";    // 星座
 
-        #endregion
-        #endregion 日的农历信息
+     
 
 
-
-        #region 日的回历信息
-        
+      
         /// <summary>
         /// 年(回历)
         /// </summary>
@@ -197,11 +184,8 @@ namespace SharpSxwnl
         /// </summary>
         public double Hday { get; set; }    // = 0;    // 日(回历)
         
-        #endregion
+      
 
-
-
-        #region 日的其它信息
 
         /// <summary>
         /// 月相名称
@@ -233,12 +217,10 @@ namespace SharpSxwnl
         /// </summary>
         public string jqsj { get; set; }    // = "";    // 节气时间串
 
-        #endregion
+     
 
 
-
-        #region C#: 从 Javascript 代码中提取出来的其他字段(属性)
-
+     
         /// <summary>
         /// 农历纪年(10进制,1984年起算)
         /// </summary>
@@ -309,15 +291,10 @@ namespace SharpSxwnl
         /// </summary>
         public string Ljq { get; set; }    // = "";
 
-        #endregion
-
-
-        #endregion 公共属性
-
+    
 
         
-        #region 转换时新增的公共属性
-
+      
         /// <summary>
         /// 八字信息: 平太阳时间
         /// </summary>
@@ -326,24 +303,23 @@ namespace SharpSxwnl
         /// <summary>
         /// 所属节令
         /// </summary>
-        public SolarTerm 所属节气 { get; set; }
+        public SolarTerm ST { get; set; }
 
         /// <summary>
         /// 上一节令
         /// </summary>
-        public SolarTerm 前一节气 { get; set; }
+        public SolarTerm STlast { get; set; }
 
         /// <summary>
         /// 下一节令
         /// </summary>
-        public SolarTerm 下一节气 { get; set; }
+        public SolarTerm STnext { get; set; }
 
         /// <summary>
         /// 每日的十二建信息, 即: {建, 除, 满, 平, 定, 执, 破, 危, 成, 收, 开, 闭} 其中之一
         /// </summary>
         public string Ri12Jian { get; set; }
 
-        #endregion
-
+      
     }
 }

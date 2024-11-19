@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Text;
 using System.Text.RegularExpressions;
+using Prophecy.Data;
 
-namespace SharpSxwnl
+namespace Prophecy
 {
     /// <summary>
     /// 日历计算类
@@ -18,7 +19,7 @@ namespace SharpSxwnl
         // 更改为公共属性, 但需要在构造函数中创建对象的实例. 保留初次转换时的语句如下:
         // public LunarInfoListT<OB> lun = new LunarInfoListT<OB>();    // 存储 OB 类的实例
         //--------------------------------------------------------------------------------------
-        public LunarInfoListT<OB> lun { get; set; }    // 存储 OB 类的实例(日对象)
+        public LunarInfoListT<Day> lun { get; set; }    // 存储 OB 类的实例(日对象)
 
         /// <summary>
         /// 本月第一天的星期
@@ -77,21 +78,19 @@ namespace SharpSxwnl
 
         #endregion 公共属性(注: 初始转换时为公共字段, 已改写)
 
-        #region 构造函数
-
+     
         /// <summary>
         /// 构造函数, 为月对象添加 31 个日对象
         /// </summary>
         public Lunar()
         {
-            this.lun = new LunarInfoListT<OB>();    // C#: 转换为自动实现的公共属性时添加本句, 创建实例
+            this.lun = new LunarInfoListT<Day>();    // C#: 转换为自动实现的公共属性时添加本句, 创建实例
 
             for (int i = 0; i < 31; i++)
-                this.lun.Add(new OB());
+                this.lun.Add(new Day());
             this.lun.dn = 0;
         }
 
-        #endregion 构造函数
 
         #region 公共方法
 
@@ -121,13 +120,13 @@ namespace SharpSxwnl
             double c, Bd0, Bdn;
 
             // 日历物件初始化
-            JulianDay.h = 12; JulianDay.m = 0; JulianDay.s = 0.1;
-            JulianDay.Y = By; JulianDay.M = Bm; JulianDay.D = 1; Bd0 = LunarHelper.int2(JulianDay.toJDay()) - LunarHelper.J2000;  // 公历某年的月首,中午
-            JulianDay.M++;
-            if (JulianDay.M > 12) { JulianDay.Y++; JulianDay.M = 1; }     // C#: 如果月份大于 12, 则年数 + 1, 月数取 1
-            Bdn = LunarHelper.int2(JulianDay.toJDay()) - LunarHelper.J2000 - Bd0; // 本月天数(公历)
+            DayJ.h = 12; DayJ.m = 0; DayJ.s = 0.1;
+            DayJ.Y = By; DayJ.M = Bm; DayJ.D = 1; Bd0 = Util.int2(DayJ.toJDay()) - Util.J2000;  // 公历某年的月首,中午
+            DayJ.M++;
+            if (DayJ.M > 12) { DayJ.Y++; DayJ.M = 1; }     // C#: 如果月份大于 12, 则年数 + 1, 月数取 1
+            Bdn = Util.int2(DayJ.toJDay()) - Util.J2000 - Bd0; // 本月天数(公历)
 
-            this.w0 = (Bd0 + LunarHelper.J2000 + 1) % 7; //本月第一天的星期
+            this.w0 = (Bd0 + Util.J2000 + 1) % 7; //本月第一天的星期
             this.y = By;   // 公历年份
             this.m = Bm;   // 公历月分
             this.d0 = Bd0;
@@ -135,12 +134,12 @@ namespace SharpSxwnl
 
             // 所属公历年对应的农历干支纪年
             c = By - 1984 + 9000;
-            this.Ly = obb.Gan[(int)(c % 10)] + obb.Zhi[(int)(c % 12)];  //干支纪年
-            this.ShX = obb.ShX[(int)(c % 12)]; // 该年对应的生肖
-            this.nianhao = obb.getNH(By);
+            this.Ly = Data.LunarData.Gan[(int)(c % 10)] + Data.LunarData.Zhi[(int)(c % 12)];  //干支纪年
+            this.ShX = Data.LunarData.ShX[(int)(c % 12)]; // 该年对应的生肖
+            this.nianhao = Data.LunarData.getNH(By);
 
             double D, w;
-            OB ob, ob2;
+            Day ob, ob2;
 
             // 循环提取各日信息
             for (i = 0, j = 0; i < Bdn; i++)
@@ -153,29 +152,29 @@ namespace SharpSxwnl
                 ob.dn = Bdn;       // 公历月天数
                 ob.week0 = this.w0;     // 月首的星期
                 ob.week = (this.w0 + i) % 7;     // 当前日的星期
-                ob.weeki = LunarHelper.int2((this.w0 + i) / 7);    // 本日所在的周序号
-                ob.weekN = LunarHelper.int2((this.w0 + Bdn - 1) / 7) + 1;    // 本月的总周数
-                JulianDay.setFromJDay(ob.d0 + LunarHelper.J2000); ob.d = (int)JulianDay.D;   //公历日名称
+                ob.weeki = Util.int2((this.w0 + i) / 7);    // 本日所在的周序号
+                ob.weekN = Util.int2((this.w0 + Bdn - 1) / 7) + 1;    // 本月的总周数
+                DayJ.setFromJDay(ob.d0 + Util.J2000); ob.d = (int)DayJ.D;   //公历日名称
 
                 // 农历月历
-                if (实朔实气.ZQ.Count == 0 || ob.d0 < 实朔实气.ZQ[0] || ob.d0 >= 实朔实气.ZQ[24])   // 如果d0已在计算农历范围内则不再计算
-                    实朔实气.calcY(ob.d0);
-                int mk = (int)LunarHelper.int2((ob.d0 - 实朔实气.HS[0]) / 30); if (mk < 13 && 实朔实气.HS[mk + 1] <= ob.d0) mk++; // 农历所在月的序数
+                if (TrueNMST.ZQ.Count == 0 || ob.d0 < TrueNMST.ZQ[0] || ob.d0 >= TrueNMST.ZQ[24])   // 如果d0已在计算农历范围内则不再计算
+                    TrueNMST.calcY(ob.d0);
+                int mk = (int)Util.int2((ob.d0 - TrueNMST.HS[0]) / 30); if (mk < 13 && TrueNMST.HS[mk + 1] <= ob.d0) mk++; // 农历所在月的序数
 
-                ob.Ldi = (int)(ob.d0 - 实朔实气.HS[mk]);   // 距农历月首的编移量,0对应初一
-                ob.Ldc = obb.rmc[(int)(ob.Ldi)];      // 农历日名称
-                ob.cur_dz = ob.d0 - 实朔实气.ZQ[0];     // 距冬至的天数
-                ob.cur_xz = ob.d0 - 实朔实气.ZQ[12];    // 距夏至的天数
-                ob.cur_lq = ob.d0 - 实朔实气.ZQ[15];    // 距立秋的天数
-                ob.cur_mz = ob.d0 - 实朔实气.ZQ[11];    // 距芒种的天数
-                ob.cur_xs = ob.d0 - 实朔实气.ZQ[13];    // 距小暑的天数
-                if (ob.d0 == 实朔实气.HS[mk] || ob.d0 == Bd0)
+                ob.Ldi = (int)(ob.d0 - TrueNMST.HS[mk]);   // 距农历月首的编移量,0对应初一
+                ob.Ldc = Data.LunarData.rmc[(int)(ob.Ldi)];      // 农历日名称
+                ob.cur_dz = ob.d0 - TrueNMST.ZQ[0];     // 距冬至的天数
+                ob.cur_xz = ob.d0 - TrueNMST.ZQ[12];    // 距夏至的天数
+                ob.cur_lq = ob.d0 - TrueNMST.ZQ[15];    // 距立秋的天数
+                ob.cur_mz = ob.d0 - TrueNMST.ZQ[11];    // 距芒种的天数
+                ob.cur_xs = ob.d0 - TrueNMST.ZQ[13];    // 距小暑的天数
+                if (ob.d0 == TrueNMST.HS[mk] || ob.d0 == Bd0)
                 {
                     // 月的信息
-                    ob.Lmc = 实朔实气.ym[mk];  // 月名称
-                    ob.Ldn = 实朔实气.dx[mk];  // 月大小
-                    ob.Lleap = (实朔实气.leap != 0 && 实朔实气.leap == mk) ? "闰" : "";   // 闰状况
-                    ob.Lmc2 = mk < 13 ? 实朔实气.ym[mk + 1] : "未知";   // 下个月名称,判断除夕时要用到
+                    ob.Lmc = TrueNMST.ym[mk];  // 月名称
+                    ob.Ldn = TrueNMST.dx[mk];  // 月大小
+                    ob.Lleap = (TrueNMST.leap != 0 && TrueNMST.leap == mk) ? "闰" : "";   // 闰状况
+                    ob.Lmc2 = mk < 13 ? TrueNMST.ym[mk + 1] : "未知";   // 下个月名称,判断除夕时要用到
                 }
                 else
                 {
@@ -183,8 +182,8 @@ namespace SharpSxwnl
                     ob.Lmc = ob2.Lmc; ob.Ldn = ob2.Ldn;
                     ob.Lleap = ob2.Lleap; ob.Lmc2 = ob2.Lmc2;
                 }
-                int qk = (int)LunarHelper.int2((ob.d0 - 实朔实气.ZQ[0] - 7) / 15.2184); if (qk < 23 && ob.d0 >= 实朔实气.ZQ[qk + 1]) qk++; //节气的取值范围是0-23
-                if (ob.d0 == 实朔实气.ZQ[qk]) ob.Ljq = obb.jqmc[qk];
+                int qk = (int)Util.int2((ob.d0 - TrueNMST.ZQ[0] - 7) / 15.2184); if (qk < 23 && ob.d0 >= TrueNMST.ZQ[qk + 1]) qk++; //节气的取值范围是0-23
+                if (ob.d0 == TrueNMST.ZQ[qk]) ob.Ljq = Data.LunarData.jqmc[qk];
                 else ob.Ljq = "";
 
                 ob.yxmc = ob.yxjd = ob.yxsj = "";    // 月相名称,月相时刻(儒略日),月相时间串
@@ -192,88 +191,88 @@ namespace SharpSxwnl
 
                 // 干支纪年处理
                 // 以立春为界定年首
-                D = 实朔实气.ZQ[3] + (ob.d0 < 实朔实气.ZQ[3] ? -365 : 0) + 365.25 * 16 - 35; //以立春为界定纪年
+                D = TrueNMST.ZQ[3] + (ob.d0 < TrueNMST.ZQ[3] ? -365 : 0) + 365.25 * 16 - 35; //以立春为界定纪年
                 ob.Lyear = Math.Floor(D / 365.2422 + 0.5); //农历纪年(10进制,1984年起算)
 
                 // 以下几行以正月初一定年首
-                D = 实朔实气.HS[2];     // 一般第3个月为春节
+                D = TrueNMST.HS[2];     // 一般第3个月为春节
                 for (j = 0; j < 14; j++)
                 {
                     // 找春节
-                    if (实朔实气.ym[j] != "正") continue;
-                    D = 实朔实气.HS[j];
+                    if (TrueNMST.ym[j] != "正") continue;
+                    D = TrueNMST.HS[j];
                     if (ob.d0 < D) { D -= 365; break; }   // 无需再找下一个正月
                 }
                 D = D + 5810;    // 计算该年春节与1984年平均春节(立春附近)相差天数估计
                 ob.Lyear0 = Math.Floor(D / 365.2422 + 0.5);   // 农历纪年(10进制,1984年起算)
 
                 D = ob.Lyear + 9000;
-                ob.Lyear2 = obb.Gan[(int)(D % 10)] + obb.Zhi[(int)(D % 12)];    // 干支纪年(立春)
+                ob.Lyear2 = Data.LunarData.Gan[(int)(D % 10)] + Data.LunarData.Zhi[(int)(D % 12)];    // 干支纪年(立春)
                 D = ob.Lyear0 + 9000;
-                ob.Lyear3 = obb.Gan[(int)(D % 10)] + obb.Zhi[(int)(D % 12)];   // 干支纪年(正月)
+                ob.Lyear3 = Data.LunarData.Gan[(int)(D % 10)] + Data.LunarData.Zhi[(int)(D % 12)];   // 干支纪年(正月)
                 ob.Lyear4 = ob.Lyear0 + 1984 + 2698;    // 黄帝纪年
 
                 // 纪月处理,1998年12月7(大雪)开始连续进行节气计数,0为甲子
-                mk = (int)LunarHelper.int2((ob.d0 - 实朔实气.ZQ[0]) / 30.43685);
-                if (mk < 12 && ob.d0 >= 实朔实气.ZQ[2 * mk + 1]) mk++;  //相对大雪的月数计算,mk的取值范围0-12
+                mk = (int)Util.int2((ob.d0 - TrueNMST.ZQ[0]) / 30.43685);
+                if (mk < 12 && ob.d0 >= TrueNMST.ZQ[2 * mk + 1]) mk++;  //相对大雪的月数计算,mk的取值范围0-12
 
-                D = mk + LunarHelper.int2((实朔实气.ZQ[12] + 390) / 365.2422) * 12 + 900000; //相对于1998年12月7(大雪)的月数,900000为正数基数
+                D = mk + Util.int2((TrueNMST.ZQ[12] + 390) / 365.2422) * 12 + 900000; //相对于1998年12月7(大雪)的月数,900000为正数基数
                 ob.Lmonth = D % 12;
-                ob.Lmonth2 = obb.Gan[(int)(D % 10)] + obb.Zhi[(int)(D % 12)];
+                ob.Lmonth2 = Data.LunarData.Gan[(int)(D % 10)] + Data.LunarData.Zhi[(int)(D % 12)];
 
                 // 纪日,2000年1月7日起算
                 D = ob.d0 - 6 + 9000000;
-                ob.Lday2 = obb.Gan[(int)(D % 10)] + obb.Zhi[(int)(D % 12)];
+                ob.Lday2 = Data.LunarData.Gan[(int)(D % 10)] + Data.LunarData.Zhi[(int)(D % 12)];
 
                 // 星座
-                mk = (int)LunarHelper.int2((ob.d0 - 实朔实气.ZQ[0] - 15) / 30.43685); if (mk < 11 && ob.d0 >= 实朔实气.ZQ[2 * mk + 2]) mk++; //星座所在月的序数,(如果j=13,ob.d0不会超过第14号中气)
-                ob.XiZ = obb.XiZ[(int)((mk + 12) % 12)] + "座";
+                mk = (int)Util.int2((ob.d0 - TrueNMST.ZQ[0] - 15) / 30.43685); if (mk < 11 && ob.d0 >= TrueNMST.ZQ[2 * mk + 2]) mk++; //星座所在月的序数,(如果j=13,ob.d0不会超过第14号中气)
+                ob.XiZ = Data.LunarData.XiZ[(int)((mk + 12) % 12)] + "座";
 
                 // 回历
-                oba.getHuiLi(ob.d0, ob);
+                LunarData.getHuiLi(ob.d0, ob);
 
                 // 节日
                 ob.A = ob.B = ob.C = ""; ob.Fjia = 0;
-                oba.getDayName(ob, ob);   //公历
-                obb.getDayName(ob, ob);   //农历
+                LunarData.getDayNameJ(ob, ob);   //公历
+                LunarData.getDayNameL(ob, ob);   //农历
             }
 
             // 以下是月相与节气的处理
-            double d, jd2 = Bd0 + JulianDay.deltatT2(Bd0) - 8d / 24d;
+            double d, jd2 = Bd0 + DayJ.deltatT2(Bd0) - 8d / 24d;
             int xn;
 
             // 月相查找
             w = Ephemeris.MS_aLon(jd2 / 36525, 10, 3);
-            w = LunarHelper.int2((w - 0.78) / Math.PI * 2) * Math.PI / 2;
+            w = Util.int2((w - 0.78) / Math.PI * 2) * Math.PI / 2;
             do
             {
-                d = obb.so_accurate(w);
-                D = LunarHelper.int2(d + 0.5);
-                xn = (int)LunarHelper.int2(w / LunarHelper.pi2 * 4 + 4000000.01) % 4;
-                w += LunarHelper.pi2 / 4;
+                d = Data.LunarData.so_accurate(w);
+                D = Util.int2(d + 0.5);
+                xn = (int)Util.int2(w / Util.pi2 * 4 + 4000000.01) % 4;
+                w += Util.pi2 / 4;
                 if (D >= Bd0 + Bdn) break;
                 if (D < Bd0) continue;
                 ob = (this.lun[(int)(D - Bd0)]);
-                ob.yxmc = obb.yxmc[xn];     // 取得月相名称
+                ob.yxmc = Data.LunarData.yxmc[xn];     // 取得月相名称
                 ob.yxjd = d.ToString();
-                ob.yxsj = JulianDay.timeStr(d);
+                ob.yxsj = DayJ.timeStr(d);
             } while (D + 5 < Bd0 + Bdn);
 
             // 节气查找
             w = Ephemeris.S_aLon(jd2 / 36525, 3);
-            w = LunarHelper.int2((w - 0.13) / LunarHelper.pi2 * 24) * LunarHelper.pi2 / 24;
+            w = Util.int2((w - 0.13) / Util.pi2 * 24) * Util.pi2 / 24;
             do
             {
-                d = obb.qi_accurate(w);
-                D = LunarHelper.int2(d + 0.5);
-                xn = (int)LunarHelper.int2(w / LunarHelper.pi2 * 24 + 24000006.01) % 24;
-                w += LunarHelper.pi2 / 24;
+                d = Data.LunarData.qi_accurate(w);
+                D = Util.int2(d + 0.5);
+                xn = (int)Util.int2(w / Util.pi2 * 24 + 24000006.01) % 24;
+                w += Util.pi2 / 24;
                 if (D >= Bd0 + Bdn) break;
                 if (D < Bd0) continue;
                 ob = (this.lun[(int)(D - Bd0)]);
-                ob.jqmc = obb.jqmc[xn];     // 取得节气名称
+                ob.jqmc = Data.LunarData.jqmc[xn];     // 取得节气名称
                 ob.jqjd = d.ToString();
-                ob.jqsj = JulianDay.timeStr(d);
+                ob.jqsj = DayJ.timeStr(d);
             } while (D + 12 < Bd0 + Bdn);
 
             // C#: 转换时新增的代码行
@@ -298,7 +297,7 @@ namespace SharpSxwnl
             string c, c2;
             StringBuilder cr = new StringBuilder();    // C#: 为提高字符串处理效率, 使用 StringBuilder
             string isM;
-            OB ob;     // 日历物件
+            Day ob;     // 日历物件
 
             this.yueLiCalc(By, Bm);    // 农历计算
 
@@ -407,7 +406,7 @@ namespace SharpSxwnl
             string c, c2;
             StringBuilder cr = new StringBuilder();    // C#: 为提高字符串处理效率, 使用 StringBuilder
             string isM;
-            OB ob;     // 日历物件
+            Day ob;     // 日历物件
 
             this.yueLiCalc(By, Bm);    // 农历计算
 
@@ -506,120 +505,8 @@ namespace SharpSxwnl
             this.yueLiText(By, Bm, curJD);   // C#: 转换时新增功能而增加的语句
         }
 
-        #region 初次转换的 yueLiHTML() 方法, 因涉及大量的字符串操作, 故拟使用 StringBuiler 改写以提高效率, 但保留原代码如下
-
-        //public void yueLiHTML(int By, int Bm, double curJD)
-        //{
-        //    string sty_head = " style='font-family: 宋体; font-size: 14px; text-align: center; background-color: #E0E0FF; color: #000000; font-weight: bold' ";
-        //    string sty_body = " style='font-family: 宋体; font-size: 12px; text-align: center ' ";
-        //    string sty_date = " style='font-family: Arial Black; text-align: center;font-size: 20px' ";
-        //    string sty_date2 = " style='font-family: Arial Black; text-align: center;font-size: 20px; color: #FF0000' ";
-        //    string sty_cur = " style='background-color:#90D050' ";
-
-        //    int i, j;
-        //    string c, c2;
-        //    string cr = "", isM;
-        //    OB ob;     // 日历物件
-
-        //    this.yueLiCalc(By, Bm);    // 农历计算
-
-        //    // 年份处理
-        //    c = this.nianhao + " 农历" + this.Ly + "年【" + this.ShX + "年】";       // 干支纪年
-        //    if (c.Length > 33) c = "<span style='font-size:12px'>" + c + "</span>";
-        //    else c = "<span style='font-size:16px;font-weight:bold'>" + c + "</span>";
-        //    this.pg0 = c;
-
-        //    //月历处理
-        //    string ta0 = "<tr>"
-        //      + "<td" + sty_head + "width='%14'>日</td>"
-        //      + "<td" + sty_head + "width='%14'>一</td>"
-        //      + "<td" + sty_head + "width='%14'>二</td>"
-        //      + "<td" + sty_head + "width='%14'>三</td>"
-        //      + "<td" + sty_head + "width='%14'>四</td>"
-        //      + "<td" + sty_head + "width='%14'>五</td>"
-        //      + "<td" + sty_head + "width='%14'>六</td><tr>";
-        //    for (i = 0; i < this.dn; i++)
-        //    {
-        //        // 遍历本月各日(公历), 生成第 i 日的日历页面
-        //        ob = (this.lun[i]);
-        //        if (i == 0)
-        //        {
-        //            for (j = 0; j < this.w0; j++)     // 首行前面的空单元格(依据: 本月首日的星期)
-        //                cr += "<td" + sty_body + "></td>";
-        //        }
-
-        //        c = ""; isM = "";  // 文字格式控制项
-        //        if (ob.A.Length > 0)
-        //            c += "<font color=red>" + this.substr2(ob.A, 4, "..") + "</font>";
-        //        if (c.Length <= 0 && ob.B.Length > 0)
-        //            c = "<font color=blue>" + this.substr2(ob.B, 4, "..") + "</font>";
-        //        if (c.Length <= 0 && ob.Ldc == "初一")
-        //            c = ob.Lleap + ob.Lmc + "月" + (ob.Ldn == 30 ? "大" : "小");   // 农历历月(闰月及大小等)
-        //        if (c.Length <= 0)
-        //            c = ob.Ldc;   // 取农历日名称
-
-        //        if (ob.yxmc == "朔") isM = "<font color=#505000>●</font>";           // 取月相
-        //        if (ob.yxmc == "望") isM = "<font color=#F0B000>●</font>";           // 取月相
-        //        if (ob.yxmc == "上弦") isM = "<font color=#F0B000><b>∪</b></font>";
-        //        if (ob.yxmc == "下弦") isM = "<font color=#F0B000><b>∩</b></font>";
-
-        //        if (ob.jqmc.Length > 0)
-        //            isM += "<font color=#00C000>◆</font>";  // 定气标记
-
-        //        if (ob.Fjia != 0)
-        //            c2 = sty_date2; //节日置红色
-        //        else c2 = sty_date;
-
-        //        //c2 += " onmouseover='showMessD(" + i + ")'";     // C#: 注掉鼠标事件, 下同
-        //        //c2 += " onmouseout ='showMessD(-1)'";
-
-        //        c2 = "<span" + c2 + ">" + ob.d + "</span>"; //公历的日名称
-
-        //        if (ob.d0 == curJD)
-        //            c2 = "<span" + sty_cur + ">" + c2 + "</span>";   // 今日标识
-
-        //        //cr += "<td" + sty_body + "width='14%'>" + c2 + "<br>" + isM + c + "</td>";      // C#: 注释, 改写如下:
-        //        cr += "<td" + sty_body + "width='14%' onmouseover='changeBackcolor(this,1)' " +
-        //                      "onmouseout='changeBackcolor(this,0)'>" +
-        //                      c2 + "<br>" + isM + c + "</td>";               // C#: 新改写的语句, 增加鼠标事件处理
-
-        //        if (i == this.dn - 1)
-        //        {
-        //            for (j = 0; j < 6 - ob.week; j++)      // 末行后面的空单元格(依据: 本月末日的星期)
-        //                cr += "<td" + sty_body + "></td>";
-        //        }
-        //        if (i == this.dn - 1 || ob.week == 6)
-        //        {
-        //            ta0 += "<tr>" + cr + "</tr>";
-        //            cr = "";
-        //        }
-        //    }
-        //    this.pg1 = "<table border=0 cellpadding=3 cellspacing=1 width='100%'>" + ta0 + "</table>";
-
-        //    string b2 = "", b3 = "", b4 = "";
-        //    int c__;
-        //    for (i = 0; i < this.dn; i++)
-        //    {
-        //        ob = (this.lun[i]);
-        //        c__ = i + 1;
-        //        if (c__ < 10)
-        //            c = "&nbsp;" + c__;
-        //        else
-        //            c = c__.ToString();
-        //        //if(ob.Ldc =="初一") b1 += c +"日 "+ob.Lleap+ob.Lmc+"月" + (ob.Ldn==30?"大":"小")+" &nbsp;";
-        //        if (ob.yxmc == "朔" || ob.yxmc == "望") b2 += c + "日 " + ob.yxsj + ob.yxmc + "月 &nbsp;";
-        //        if (ob.yxmc == "上弦" || ob.yxmc == "下弦") b3 += c + "日 " + ob.yxsj + ob.yxmc + " &nbsp;";
-        //        if (ob.jqmc.Length > 0) b4 += c + "日 " + ob.jqsj + ob.jqmc + " &nbsp;";
-        //    }
-        //    this.pg2 = b2 + "<br>" + b3 + "<br>" + b4;
-
-        //    this.yueLiText(By, Bm, curJD);   // C#: 转换时新增功能而增加的语句
-        //}
-
-        #endregion 初次转换的 yueLiHTML() 方法, 因涉及大量的字符串操作, 故拟使用 StringBuiler 改写以提高效率, 但保留原代码如下
-
-        #region 原 Lunar.js 中的独立函数转换到类中
-
+   
+ 
         /// <summary>
         /// 按交节时刻生成 html 年历
         /// </summary>
@@ -633,36 +520,36 @@ namespace SharpSxwnl
             string s2;
             double v, qi = 0;
 
-            实朔实气.calcY(LunarHelper.int2((y - 2000) * 365.2422 + 180));
+            TrueNMST.calcY(Util.int2((y - 2000) * 365.2422 + 180));
 
             for (i = 0; i < 14; i++)
             {
-                if (实朔实气.HS[i + 1] > 实朔实气.ZQ[24]) break;    // 已包含下一年的冬至
-                if (实朔实气.leap != 0 && i == 实朔实气.leap) s1.Append("闰");
+                if (TrueNMST.HS[i + 1] > TrueNMST.ZQ[24]) break;    // 已包含下一年的冬至
+                if (TrueNMST.leap != 0 && i == TrueNMST.leap) s1.Append("闰");
                 else s1.Append("·");
-                s1.Append(实朔实气.ym[i]);
+                s1.Append(TrueNMST.ym[i]);
                 if (s1.ToString().Length < 3) s1.Append("月");
-                s1.Append(实朔实气.dx[i] > 29 ? "大" : "小");
-                s1.Append(" " + JulianDay.setFromJDay_str(实朔实气.HS[i] + LunarHelper.J2000).Substring(6, 5));    // C#: 取实历初一的时间
+                s1.Append(TrueNMST.dx[i] > 29 ? "大" : "小");
+                s1.Append(" " + DayJ.setFromJDay_str(TrueNMST.HS[i] + Util.J2000).Substring(6, 5));    // C#: 取实历初一的时间
 
-                v = obb.so_accurate2(实朔实气.HS[i]);
-                s2 = "(" + JulianDay.setFromJDay_str(v + LunarHelper.J2000).Substring(9, 11) + ")";    // C#: 取每月朔的时间(即初一)
-                if (LunarHelper.int2(v + 0.5) != 实朔实气.HS[i]) s2 = "<font color=red>" + s2 + "</font>";
+                v = Data.LunarData.so_accurate2(TrueNMST.HS[i]);
+                s2 = "(" + DayJ.setFromJDay_str(v + Util.J2000).Substring(9, 11) + ")";    // C#: 取每月朔的时间(即初一)
+                if (Util.int2(v + 0.5) != TrueNMST.HS[i]) s2 = "<font color=red>" + s2 + "</font>";
                 //v=(v+0.5+LunarHelper.J2000)%1; if(v>0.5) v=1-v; if(v<8/1440) s2 = "<u>"+s2+"</u>"; //对靠近0点的加注
                 s1.Append(s2);
 
                 for (j = -2; j < 24; j++)
                 {
-                    if (j >= 0) qi = 实朔实气.ZQ[j];
-                    if (j == -1) qi = 实朔实气.ZQ.pe1;
-                    if (j == -2) qi = 实朔实气.ZQ.pe2;
+                    if (j >= 0) qi = TrueNMST.ZQ[j];
+                    if (j == -1) qi = TrueNMST.ZQ.pe1;
+                    if (j == -2) qi = TrueNMST.ZQ.pe2;
 
-                    if (qi < 实朔实气.HS[i] || qi >= 实朔实气.HS[i + 1]) continue;
-                    s1.Append(" " + obb.jqmc[(j + 24) % 24] + JulianDay.setFromJDay_str(qi + LunarHelper.J2000).Substring(6, 5));    // C#: 取节气名称和实历交节日期
+                    if (qi < TrueNMST.HS[i] || qi >= TrueNMST.HS[i + 1]) continue;
+                    s1.Append(" " + Data.LunarData.jqmc[(j + 24) % 24] + DayJ.setFromJDay_str(qi + Util.J2000).Substring(6, 5));    // C#: 取节气名称和实历交节日期
 
-                    v = obb.qi_accurate2(qi);
-                    s2 = "(" + JulianDay.setFromJDay_str(v + LunarHelper.J2000).Substring(9, 11) + ")";    // C#: 取节气时间(上年大雪-本年大雪)
-                    if (LunarHelper.int2(v + 0.5) != qi) s2 = "<font color=red>" + s2 + "</font>";
+                    v = Data.LunarData.qi_accurate2(qi);
+                    s2 = "(" + DayJ.setFromJDay_str(v + Util.J2000).Substring(9, 11) + ")";    // C#: 取节气时间(上年大雪-本年大雪)
+                    if (Util.int2(v + 0.5) != qi) s2 = "<font color=red>" + s2 + "</font>";
                     //v=(v+0.5+LunarHelper.J2000)%1; if(v>0.5) v=1-v; if(v<8/1440) s2 = "<u>"+s2+"</u>"; //对靠近0点的加注
                     s1.Append(s2);
                 }
@@ -683,29 +570,29 @@ namespace SharpSxwnl
             StringBuilder s = new StringBuilder();     // C#: 为提高字符串处理效率, 使用 StringBuilder
             StringBuilder s1 = new StringBuilder();    // C#: 为提高字符串处理效率, 使用 StringBuilder
             double v, v2, qi = 0;
-            实朔实气.calcY(LunarHelper.int2((y - 2000) * 365.2422 + 180));
+            TrueNMST.calcY(Util.int2((y - 2000) * 365.2422 + 180));
             for (i = 0; i < 14; i++)
             {
-                if (实朔实气.HS[i + 1] > 实朔实气.ZQ[24]) break; //已包含下一年的冬至
-                if (实朔实气.leap != 0 && i == 实朔实气.leap) s1.Append("闰");
+                if (TrueNMST.HS[i + 1] > TrueNMST.ZQ[24]) break; //已包含下一年的冬至
+                if (TrueNMST.leap != 0 && i == TrueNMST.leap) s1.Append("闰");
                 else s1.Append("·");
-                s1.Append(实朔实气.ym[i]);
+                s1.Append(TrueNMST.ym[i]);
                 if (s1.ToString().Length < 3) s1.Append("月");
-                s1.Append(实朔实气.dx[i] > 29 ? "大" : "小");
-                v = 实朔实气.HS[i] + LunarHelper.J2000;
-                s1.Append(" " + obb.Gan[(int)((v + 9) % 10)] + obb.Zhi[(int)((v + 1) % 12)]);
-                s1.Append(" " + JulianDay.setFromJDay_str(v).Substring(6, 5));
+                s1.Append(TrueNMST.dx[i] > 29 ? "大" : "小");
+                v = TrueNMST.HS[i] + Util.J2000;
+                s1.Append(" " + Data.LunarData.Gan[(int)((v + 9) % 10)] + Data.LunarData.Zhi[(int)((v + 1) % 12)]);
+                s1.Append(" " + DayJ.setFromJDay_str(v).Substring(6, 5));
 
                 for (j = -2; j < 24; j++)
                 {
-                    if (j >= 0) qi = 实朔实气.ZQ[j];
-                    if (j == -1) qi = 实朔实气.ZQ.pe1;
-                    if (j == -2) qi = 实朔实气.ZQ.pe2;
+                    if (j >= 0) qi = TrueNMST.ZQ[j];
+                    if (j == -1) qi = TrueNMST.ZQ.pe1;
+                    if (j == -2) qi = TrueNMST.ZQ.pe2;
 
-                    if (qi < 实朔实气.HS[i] || qi >= 实朔实气.HS[i + 1]) continue;
-                    v2 = qi + LunarHelper.J2000;
-                    s1.Append(" " + obb.rmc[(int)(v2 - v)] + obb.Gan[(int)((v2 + 9) % 10)] + obb.Zhi[(int)((v2 + 1) % 12)]);
-                    s1.Append(obb.jqmc[(j + 24) % 24] + JulianDay.setFromJDay_str(qi + LunarHelper.J2000).Substring(6, 5));
+                    if (qi < TrueNMST.HS[i] || qi >= TrueNMST.HS[i + 1]) continue;
+                    v2 = qi + Util.J2000;
+                    s1.Append(" " + Data.LunarData.rmc[(int)(v2 - v)] + Data.LunarData.Gan[(int)((v2 + 9) % 10)] + Data.LunarData.Zhi[(int)((v2 + 1) % 12)]);
+                    s1.Append(Data.LunarData.jqmc[(j + 24) % 24] + DayJ.setFromJDay_str(qi + Util.J2000).Substring(6, 5));
                 }
                 s.Append(s1.ToString() + "<br>");
                 s1.Remove(0, s1.Length);     // C#: 在转换时将原来的字符串 s1 改写为 StringBuiler, 因此添加本句
@@ -713,11 +600,10 @@ namespace SharpSxwnl
             return s.ToString();
         }
 
-        #endregion 原 Lunar.js 中的独立函数转换到类中
-
+    
         #endregion 公共方法
 
-        #region 转换时新增的属性
+        #region 转换时新增
 
         /// <summary>
         /// 文本年号信息
@@ -735,10 +621,6 @@ namespace SharpSxwnl
         /// </summary>
         public string pg2_text { get; set; }    // = "";
 
-        #endregion 转换时新增的属性
-
-        #region 转换时新增的方法
-
         /// <summary>
         /// 文本月历生成
         /// </summary>
@@ -750,7 +632,7 @@ namespace SharpSxwnl
             int i, j;
             string c;
             string isM;
-            OB ob; //日历物件
+            Day ob; //日历物件
 
             //年份处理
             this.pg0_text = this.nianhao + " 农历" + this.Ly + "年【" + this.ShX + "年】"; ;
@@ -795,7 +677,7 @@ namespace SharpSxwnl
         /// </summary>
         /// <param name="ob"></param>
         /// <returns>计算成功返回 true, 否则返回 false </returns>
-        public bool CalcJieQiInfo(OB ob, 计算节气的类型 calcType)
+        public bool CalcJieQiInfo(Day ob, 计算节气的类型 calcType)
         {
             const int JiQiInfo_Name = 0;
             const int JiQiInfo_JDTime = 1;
@@ -819,7 +701,7 @@ namespace SharpSxwnl
 
             double v, qi = 0;
 
-            int num = 实朔实气.calcJieQi(LunarHelper.int2((y - 2000) * 365.2422 + 180), true);    // 计算节气, 以"霜降"开始
+            int num = TrueNMST.calcJieQi(Util.int2((y - 2000) * 365.2422 + 180), true);    // 计算节气, 以"霜降"开始
 
             for (j = 0; j < num; j++)    // 建表
             {
@@ -831,31 +713,31 @@ namespace SharpSxwnl
                     if (((j + 24) % 24) % 2 == 1)           // 节(跳过, 只使用气)
                         continue;
 
-                qi = 实朔实气.ZQ[j];
+                qi = TrueNMST.ZQ[j];
 
-                v = obb.qi_accurate2(qi);
-                jieqiList[counter, JiQiInfo_Time] = JulianDay.setFromJDay_str(v + LunarHelper.J2000);
+                v = Data.LunarData.qi_accurate2(qi);
+                jieqiList[counter, JiQiInfo_Time] = DayJ.setFromJDay_str(v + Util.J2000);
 
                 jieQiPos = (j + 24) % 24 + 20;      // 与 obb.jqmc 对应, "霜降"距首位"冬至"的距离为 20
                 if (jieQiPos >= 24)
                     jieQiPos -= 24;
 
                 jieqiList[counter, JiQiInfo_JieOrQi] = true;
-                jieqiList[counter, JiQiInfo_Name] = obb.jqmc[jieQiPos];
-                jieqiList[counter, JiQiInfo_YueJian] = obb.JieQiYueJian[jieQiPos];
-                jieqiList[counter, JiQiInfo_JDTime] = v + LunarHelper.J2000;
+                jieqiList[counter, JiQiInfo_Name] = Data.LunarData.jqmc[jieQiPos];
+                jieqiList[counter, JiQiInfo_YueJian] = Data.LunarData.JieQiYueJian[jieQiPos];
+                jieqiList[counter, JiQiInfo_JDTime] = v + Util.J2000;
 
-                jieqiList[counter, JiQiInfo_HistoricalTime] = JulianDay.setFromJDay_str(qi + LunarHelper.J2000);
-                jieqiList[counter, JiQiInfo_HistoricalJDTime] = qi + LunarHelper.J2000;
-                jieqiList[counter, JiQiInfo_DifferentTime] = (LunarHelper.int2(v + 0.5) != qi ? true : false);
+                jieqiList[counter, JiQiInfo_HistoricalTime] = DayJ.setFromJDay_str(qi + Util.J2000);
+                jieqiList[counter, JiQiInfo_HistoricalJDTime] = qi + Util.J2000;
+                jieqiList[counter, JiQiInfo_DifferentTime] = (Util.int2(v + 0.5) != qi ? true : false);
 
-                jieqiList[counter, JiQiInfo_DayDifference] = (int)(LunarHelper.int2(v + 0.5) - qi);
+                jieqiList[counter, JiQiInfo_DayDifference] = (int)(Util.int2(v + 0.5) - qi);
 
                 counter++;
             }
 
-            for (j = 0; j < 实朔实气.ZQ.Count; j++)    // △重要: 由于调用了 SSQ.calcJieQi 方法, 计算了 31 个节气(超出年周期)数据, 故应清零
-                实朔实气.ZQ[j] = 0;
+            for (j = 0; j < TrueNMST.ZQ.Count; j++)    // △重要: 由于调用了 SSQ.calcJieQi 方法, 计算了 31 个节气(超出年周期)数据, 故应清零
+                TrueNMST.ZQ[j] = 0;
 
             if (ob.y >= 0)
             {
@@ -905,15 +787,15 @@ namespace SharpSxwnl
                     switch (j)
                     {
                         case PrevJieQiFlag:
-                            jieqiInfo = ob.前一节气;
+                            jieqiInfo = ob.STlast;
                             break;
 
                         case ThisJieQiFlag:
-                            jieqiInfo = ob.所属节气;
+                            jieqiInfo = ob.ST;
                             break;
 
                         case NextJieQiFlag:
-                            jieqiInfo = ob.下一节气;
+                            jieqiInfo = ob.STnext;
                             break;
 
                         default:
@@ -954,9 +836,9 @@ namespace SharpSxwnl
             string result = String.Empty;
             int posYueJian = -1, posRiZhi = -1, pos;
 
-            for (int i = 0; i < obb.Zhi.Length; i++)
+            for (int i = 0; i < Data.LunarData.Zhi.Length; i++)
             {
-                if (obb.Zhi[i] == yueJian)
+                if (Data.LunarData.Zhi[i] == yueJian)
                 {
                     posYueJian = i;
                     break;
@@ -965,9 +847,9 @@ namespace SharpSxwnl
 
             if (posYueJian >= 0)
             {
-                for (int i = posYueJian + 1; i < obb.DoubleZhi.Length; i++)
+                for (int i = posYueJian + 1; i < Data.LunarData.DoubleZhi.Length; i++)
                 {
-                    if (obb.DoubleZhi[i] == riZhi)
+                    if (Data.LunarData.DoubleZhi[i] == riZhi)
                     {
                         posRiZhi = i;
                         break;
@@ -977,7 +859,7 @@ namespace SharpSxwnl
                 if (posRiZhi >= posYueJian)
                 {
                     pos = posRiZhi - posYueJian;
-                    result = obb.DoubleRiJian12[pos];
+                    result = Data.LunarData.DoubleRiJian12[pos];
                 }
             }
 
@@ -989,7 +871,7 @@ namespace SharpSxwnl
         /// </summary>
         private void CalcRiJianThisMonth()
         {
-            OB lunOb;
+            Day lunOb;
             string yuejian = String.Empty;
 
             //OB ob = new OB();
@@ -1010,9 +892,9 @@ namespace SharpSxwnl
                 //    yuejian = LunarHelper.SUBSTRING(lunOb.Lmonth2, 1, 1);     // 调整为实历
 
                 // 可直接使用该属性的月建而无需再次计算节气, 但上述被注释的代码也可用(主要为了测试 CalcJieQiInfo 方法, 暂保留)
-                yuejian = LunarHelper.SUBSTRING(lunOb.Lmonth2, 1, 1);
+                yuejian = Util.SUBSTRING(lunOb.Lmonth2, 1, 1);
 
-                lunOb.Ri12Jian = this.GetRi12Jian(yuejian, LunarHelper.SUBSTRING(lunOb.Lday2, 1, 1));    // 计算日十二建
+                lunOb.Ri12Jian = this.GetRi12Jian(yuejian, Util.SUBSTRING(lunOb.Lday2, 1, 1));    // 计算日十二建
             }
         }
 

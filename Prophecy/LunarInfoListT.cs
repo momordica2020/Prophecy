@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Collections;
 
-namespace SharpSxwnl
+namespace Prophecy
 {
     /// <summary>
     /// 由于在 Javascript 中, 数组可以有自己的属性, 为了对应此功能, 设计本类
@@ -12,8 +12,7 @@ namespace SharpSxwnl
     /// <typeparam name="T"></typeparam>
     public class LunarInfoListT<T> : List<T>      // 派生于泛型 List<T> 类, 以提高代码的效率
     {
-        #region 公共属性(注: 初始转换时为公共字段, 已改写)
-
+   
         /// <summary>
         /// 升(时间)
         /// </summary>
@@ -143,12 +142,9 @@ namespace SharpSxwnl
         /// </summary>
         public int Length { get { return this.Count; } }
 
-        #endregion
+   
 
-
-
-        #region 构造函数
-
+     
         public LunarInfoListT()
         {
         }
@@ -167,8 +163,7 @@ namespace SharpSxwnl
             }
         }
         
-        #endregion
-
+     
     }
 
 

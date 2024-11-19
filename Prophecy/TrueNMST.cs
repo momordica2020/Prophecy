@@ -1,25 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Prophecy.Data;
 
-namespace SharpSxwnl
+namespace Prophecy
 {
     /// <summary>
     /// 实朔实气计算器
     /// </summary>
-    public static class 实朔实气
+    public static class TrueNMST
     {
-        #region 私有字段
+
+        public static string[] ym = new string[32];  //各月名称
+        public static LunarInfoListT<double> ZQ = new LunarInfoListT<double>(31, 0d); //中气表,其中.liqiu是节气立秋的儒略日,计算三伏时用到
+        public static double[] HS = new double[32];  //合朔表
+        public static double[] dx = new double[32];  //各月大小
+        public static double[] Yn = new double[1];   //年计数
 
         /// <summary>
         /// 朔修正表
         /// </summary>
-        private static string SB = 实朔实气.init(1);    // 朔修正表
+        private static string SB = TrueNMST.init(1);    // 朔修正表
 
         /// <summary>
         /// 气修正表
         /// </summary>
-        private static string QB = 实朔实气.init(0);    // 气修正表
+        private static string QB = TrueNMST.init(0);    // 气修正表
 
         /// <summary>
         /// 朔直线拟合参数
@@ -83,8 +89,7 @@ namespace SharpSxwnl
               2321919.49// 1645-02-04
          };
 
-        #endregion 私有字段
-
+      
 
 
         #region 私有方法
@@ -137,9 +142,9 @@ namespace SharpSxwnl
         private static double qi_high(double W)
         {
             double t = Ephemeris.S_aLon_t2(W) * 36525;
-            t = t - JulianDay.deltatT2(t) + 8d / 24d;
+            t = t - DayJ.deltatT2(t) + 8d / 24d;
             double v = ((t + 0.5) % 1) * 86400;
-            if (v < 600 || v > 86400 - 600) t = Ephemeris.S_aLon_t(W) * 36525 - JulianDay.deltatT2(t) + 8d / 24d;
+            if (v < 600 || v > 86400 - 600) t = Ephemeris.S_aLon_t(W) * 36525 - DayJ.deltatT2(t) + 8d / 24d;
             return t;
         }
 
@@ -152,9 +157,9 @@ namespace SharpSxwnl
         private static double so_high(double W)
         {
             double t = Ephemeris.MS_aLon_t2(W) * 36525;
-            t = t - JulianDay.deltatT2(t) + 8d / 24d;
+            t = t - DayJ.deltatT2(t) + 8d / 24d;
             double v = ((t + 0.5) % 1) * 86400;
-            if (v < 600 || v > 86400 - 600) t = Ephemeris.MS_aLon_t(W) * 36525 - JulianDay.deltatT2(t) + 8d / 24d;
+            if (v < 600 || v > 86400 - 600) t = Ephemeris.MS_aLon_t(W) * 36525 - DayJ.deltatT2(t) + 8d / 24d;
             return t;
         }
 
@@ -165,7 +170,7 @@ namespace SharpSxwnl
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        private static string jieya(string s)
+        private static string decode(string s)
         {
             string o = "0000000000", o2 = o + o;
             StringBuilder sb = new StringBuilder(s, 32768);
@@ -242,11 +247,11 @@ namespace SharpSxwnl
 
             if (type == 1)
             {
-                return 实朔实气.jieya(suoS.ToString());
+                return TrueNMST.decode(suoS.ToString());
             }
             else
             {
-                return 实朔实气.jieya(qiS.ToString());
+                return TrueNMST.decode(qiS.ToString());
             }
         }
 
@@ -254,8 +259,7 @@ namespace SharpSxwnl
 
 
 
-        #region 公共方法(1)
-
+      
         /// <summary>
         /// jd 应靠近所要取得的气朔日, 当参数 qs="气" 时，算节气的儒略日
         /// </summary>
@@ -264,23 +268,23 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static double calc(double jd, string qs)
         {
-            jd += LunarHelper.J2000;    // C#: 改为常量
+            jd += Util.J2000;    // C#: 改为常量
             int i;
             double D;
             string n;
-            double[] B = 实朔实气.suoKB;
+            double[] B = TrueNMST.suoKB;
             double pc = 14; 
 
-            if (qs == "气") { B = 实朔实气.qiKB; pc = 7; }
+            if (qs == "气") { B = TrueNMST.qiKB; pc = 7; }
             double f1 = B[0] - pc, f2 = B[B.Length - 1] - pc, f3 = 2436935;
 
             if (jd < f1 || jd >= f3)
             { 
                 // 平气朔表中首个之前，使用现代天文算法。1960.1.1以后，使用现代天文算法 (这一部分调用了qi_high和so_high,所以需星历表支持)
                 if (qs == "气") 
-                    return Math.Floor(实朔实气.qi_high(Math.Floor((jd + pc - 2451259) / 365.2422 * 24) * Math.PI / 12) + 0.5); //2451259是1999.3.21,太阳视黄经为0,春分.定气计算
+                    return Math.Floor(TrueNMST.qi_high(Math.Floor((jd + pc - 2451259) / 365.2422 * 24) * Math.PI / 12) + 0.5); //2451259是1999.3.21,太阳视黄经为0,春分.定气计算
                 else 
-                    return Math.Floor(实朔实气.so_high(Math.Floor((jd + pc - 2451551) / 29.5306) * Math.PI * 2) + 0.5); //2451551是2000.1.7的那个朔日,黄经差为0.定朔计算
+                    return Math.Floor(TrueNMST.so_high(Math.Floor((jd + pc - 2451551) / 29.5306) * Math.PI * 2) + 0.5); //2451551是2000.1.7的那个朔日,黄经差为0.定朔计算
             }
 
             if (jd >= f1 && jd < f2)
@@ -291,7 +295,7 @@ namespace SharpSxwnl
                 D = B[i] + B[i + 1] * Math.Floor((jd + pc - B[i]) / B[i + 1]);
                 D = Math.Floor(D + 0.5);
                 if (D == 1683460) D++; //如果使用太初历计算-103年1月24日的朔日,结果得到的是23日,这里修正为24日(实历)。修正后仍不影响-103的无中置闰。如果使用秦汉历，得到的是24日，本行D不会被执行。
-                return D - LunarHelper.J2000;    // C#: 改为常量
+                return D - Util.J2000;    // C#: 改为常量
             }
 
             if (jd >= f2 && jd < f3)
@@ -299,13 +303,13 @@ namespace SharpSxwnl
                 // 定气或定朔
                 if (qs == "气")
                 {
-                    D = Math.Floor(实朔实气.qi_low(Math.Floor((jd + pc - 2451259) / 365.2422 * 24) * Math.PI / 12) + 0.5); //2451259是1999.3.21,太阳视黄经为0,春分.定气计算
-                    n = 实朔实气.QB.Substring((int)(Math.Floor((jd - f2) / 365.2422 * 24)), 1); //找定气修正值
+                    D = Math.Floor(TrueNMST.qi_low(Math.Floor((jd + pc - 2451259) / 365.2422 * 24) * Math.PI / 12) + 0.5); //2451259是1999.3.21,太阳视黄经为0,春分.定气计算
+                    n = TrueNMST.QB.Substring((int)(Math.Floor((jd - f2) / 365.2422 * 24)), 1); //找定气修正值
                 }
                 else
                 {
-                    D = Math.Floor(实朔实气.so_low(Math.Floor((jd + pc - 2451551) / 29.5306) * Math.PI * 2) + 0.5); //2451551是2000.1.7的那个朔日,黄经差为0.定朔计算
-                    n = 实朔实气.SB.Substring((int)(Math.Floor((jd - f2) / 29.5306)), 1); //找定朔修正值
+                    D = Math.Floor(TrueNMST.so_low(Math.Floor((jd + pc - 2451551) / 29.5306) * Math.PI * 2) + 0.5); //2451551是2000.1.7的那个朔日,黄经差为0.定朔计算
+                    n = TrueNMST.SB.Substring((int)(Math.Floor((jd - f2) / 29.5306)), 1); //找定朔修正值
                 }
                 if (n == "1") return D + 1;
                 if (n == "2") return D - 1;
@@ -315,12 +319,7 @@ namespace SharpSxwnl
             return 0;    // C#: 新增
         }
 
-        #endregion 公共方法(1)
-
-
-
-        #region 公共属性(注: 初始转换时为公共字段, 已改写, 请参阅“转换时增加的私有字段”)
-
+    
         // 排月序(生成实际年历),在调用calcY()后得到以下数据
         // 时间系统全部使用北京时，即使是天象时刻的输出，也是使用北京时
         // 如果天象的输出不使用北京时，会造成显示混乱，更严重的是无法与古历比对
@@ -330,76 +329,9 @@ namespace SharpSxwnl
         /// </summary>
         public static int leap { get; set; }    // = 0;         //闰月位置
 
-        /// <summary>
-        /// 各月名称
-        /// </summary>
-        //------------------------------------------------------------------------------------------------------------
-        // 初次转换时的语句如下:
-        // public static string[] ym = new string[32]; //各月名称
-        //------------------------------------------------------------------------------------------------------------
-        public static string[] ym
-        {
-            get { return 实朔实气.__ym; }
-            set { 实朔实气.__ym = value; }
-        }
-
-        /// <summary>
-        /// 中气表, 功能与 doulbe[] 类似, 但它有自定义属性的 
-        /// </summary>
-        //------------------------------------------------------------------------------------------------------------------------------------
-        // 初次转换时的语句如下:
-        // public static LunarInfoListT<double> ZQ = new LunarInfoListT<double>(31, 0d); //中气表,其中.liqiu是节气立秋的儒略日,计算三伏时用到
-        //------------------------------------------------------------------------------------------------------------------------------------
-        public static LunarInfoListT<double> ZQ
-        {
-            get { return 实朔实气.__ZQ; }
-            set { 实朔实气.__ZQ = value; }
-        }
-
-        /// <summary>
-        /// 合朔表
-        /// </summary>
-        //------------------------------------------------------------------------------------------------------------
-        // 初次转换时的语句如下:
-        // public static double[] HS = new double[32]; //合朔表
-        //------------------------------------------------------------------------------------------------------------
-        public static double[] HS
-        {
-            get { return 实朔实气.__HS; }
-            set { 实朔实气.__HS = value; }
-        }
-
-        /// <summary>
-        /// 各月大小
-        /// </summary>
-        //------------------------------------------------------------------------------------------------------------
-        // 初次转换时的语句如下:
-        // public static double[] dx = new double[32]; //各月大小
-        //------------------------------------------------------------------------------------------------------------
-        public static double[] dx
-        {
-            get { return 实朔实气.__dx; }
-            set { 实朔实气.__dx = value; }
-        }
-
-        /// <summary>
-        /// 年计数
-        /// </summary>
-        //------------------------------------------------------------------------------------------------------------
-        // 初次转换时的语句如下:
-        // public static double[] Yn = new double[1];  //年计数
-        //------------------------------------------------------------------------------------------------------------
-        public static double[] Yn
-        {
-            get { return 实朔实气.__Yn; }
-            set { 实朔实气.__Yn = value; }
-        }
-
-        #endregion 公共属性
+        
 
 
-
-        #region 公共方法(2)
 
         /// <summary>
         /// 农历排月序计算,可定出农历,有效范围：两个冬至之间(冬至一 ≤ d ＜ 冬至二)
@@ -407,54 +339,54 @@ namespace SharpSxwnl
         /// <param name="jd"></param>
         public static void calcY(double jd)
         {
-            LunarInfoListT<double> A = 实朔实气.ZQ;
-            double[] B = 实朔实气.HS;  // 中气表,日月合朔表(整日)
+            LunarInfoListT<double> A = TrueNMST.ZQ;
+            double[] B = TrueNMST.HS;  // 中气表,日月合朔表(整日)
             int i;
             double W, w;
 
             // 该年的气
-            W = LunarHelper.int2((jd - 355 + 183) / 365.2422) * 365.2422 + 355;  // 355是2000.12冬至,得到较靠近jd的冬至估计值
-            if (实朔实气.calc(W, "气") > jd) W -= 365.2422;
-            for (i = 0; i < 25; i++) A[i] = 实朔实气.calc(W + 15.2184 * i, "气");     // 25个节气时刻(北京时间),从冬至开始到下一个冬至以后
-            A.pe1 = 实朔实气.calc(W - 15.2, "气"); A.pe2 = 实朔实气.calc(W - 30.4, "气");  // 补算二气,确保一年中所有月份的“气”全部被计算在内
+            W = Util.int2((jd - 355 + 183) / 365.2422) * 365.2422 + 355;  // 355是2000.12冬至,得到较靠近jd的冬至估计值
+            if (TrueNMST.calc(W, "气") > jd) W -= 365.2422;
+            for (i = 0; i < 25; i++) A[i] = TrueNMST.calc(W + 15.2184 * i, "气");     // 25个节气时刻(北京时间),从冬至开始到下一个冬至以后
+            A.pe1 = TrueNMST.calc(W - 15.2, "气"); A.pe2 = TrueNMST.calc(W - 30.4, "气");  // 补算二气,确保一年中所有月份的“气”全部被计算在内
 
             // 今年"首朔"的日月黄经差w
-            w = 实朔实气.calc(A[0], "朔");    // 求较靠近冬至的朔日
+            w = TrueNMST.calc(A[0], "朔");    // 求较靠近冬至的朔日
             if (w > A[0]) w -= 29.53;
 
             // 该年所有朔,包含14个月的始末
             for (i = 0; i < 15; i++)
             {
-                B[i] = 实朔实气.calc(w + 29.5306 * i, "朔");
+                B[i] = TrueNMST.calc(w + 29.5306 * i, "朔");
             }
 
             // 月大小
-            实朔实气.leap = 0;
+            TrueNMST.leap = 0;
             for (i = 0; i < 14; i++)
             {
-                实朔实气.dx[i] = 实朔实气.HS[i + 1] - 实朔实气.HS[i]; // 月大小
-                实朔实气.ym[i] = i.ToString();  // 月序初始化
+                TrueNMST.dx[i] = TrueNMST.HS[i + 1] - TrueNMST.HS[i]; // 月大小
+                TrueNMST.ym[i] = i.ToString();  // 月序初始化
             }
 
 
 
             // -721年至-104年的后九月及月建问题,与朔有关，与气无关
-            double YY = LunarHelper.int2((实朔实气.ZQ[0] + 10 + 180) / 365.2422) + 2000; // 确定年份
+            double YY = Util.int2((TrueNMST.ZQ[0] + 10 + 180) / 365.2422) + 2000; // 确定年份
             if (YY >= -721 && YY <= -104)
             {
                 double ly = 0, b0 = 0, k0 = 0, x0 = 0;    // ly为历元(本历首月的儒略数),x0月建,lName闰月名称,b0,k0为置闰拟合参数
                 string lName = "";
-                if (YY >= -721) { ly = 1457698 - LunarHelper.J2000; k0 = 12.368422; b0 = 0.342; lName = "十三"; x0 = 2; }    // 春秋历,ly为-722.12.17
-                if (YY >= -479) { ly = 1546083 - LunarHelper.J2000; k0 = 12.368422; b0 = 0.500; lName = "十三"; x0 = 2; }    // 战国历,ly为-480.12.11
-                if (YY >= -220) { ly = 1640641 - LunarHelper.J2000; k0 = 12.369000; b0 = 0.866; lName = "后九"; x0 = 11; }   // 秦汉历,ly为-221.10.31;
-                double nY = LunarHelper.int2((实朔实气.HS[0] - ly + 100) / 365.25);    // 年积数
-                double f1 = LunarHelper.int2(b0 + nY * k0), f2 = LunarHelper.int2(b0 + nY * k0 + k0), f3;    // f1有本年首的月积数,f2为下一年首的月积数
-                f1 = LunarHelper.int2(f1); f2 = LunarHelper.int2(f2);
+                if (YY >= -721) { ly = 1457698 - Util.J2000; k0 = 12.368422; b0 = 0.342; lName = "十三"; x0 = 2; }    // 春秋历,ly为-722.12.17
+                if (YY >= -479) { ly = 1546083 - Util.J2000; k0 = 12.368422; b0 = 0.500; lName = "十三"; x0 = 2; }    // 战国历,ly为-480.12.11
+                if (YY >= -220) { ly = 1640641 - Util.J2000; k0 = 12.369000; b0 = 0.866; lName = "后九"; x0 = 11; }   // 秦汉历,ly为-221.10.31;
+                double nY = Util.int2((TrueNMST.HS[0] - ly + 100) / 365.25);    // 年积数
+                double f1 = Util.int2(b0 + nY * k0), f2 = Util.int2(b0 + nY * k0 + k0), f3;    // f1有本年首的月积数,f2为下一年首的月积数
+                f1 = Util.int2(f1); f2 = Util.int2(f2);
                 for (i = 0; i < 14; i++)
                 {
-                    f3 = LunarHelper.int2((实朔实气.HS[i] - ly + 15) / 29.5306);    // 该月积数
+                    f3 = Util.int2((TrueNMST.HS[i] - ly + 15) / 29.5306);    // 该月积数
                     if (f3 < f2) f3 -= f1; else f3 -= f2;
-                    if (f3 < 12) 实朔实气.ym[i] = obb.ymc[(int)((f3 + x0) % 12)]; else 实朔实气.ym[i] = lName;
+                    if (f3 < 12) TrueNMST.ym[i] = Data.LunarData.ymc[(int)((f3 + x0) % 12)]; else TrueNMST.ym[i] = lName;
                 }
 
             }
@@ -464,44 +396,31 @@ namespace SharpSxwnl
             { 
                 // 第13月的月末没有超过冬至(不含冬至),说明今年含有13个月
                 for (i = 1; B[i + 1] > A[2 * i] && i < 13; i++) ; //在13个月中找第1个没有中气的月份
-                实朔实气.leap = i;
-                for (; i < 14; i++) 实朔实气.ym[i] = (int.Parse(实朔实气.ym[i]) - 1).ToString();
+                TrueNMST.leap = i;
+                for (; i < 14; i++) TrueNMST.ym[i] = (int.Parse(TrueNMST.ym[i]) - 1).ToString();
             }
 
             // 名称转换(月建别名)
             for (i = 0; i < 14; i++)
             {
-                double Dm = 实朔实气.HS[i] + LunarHelper.J2000, v2 = int.Parse(实朔实气.ym[i]);  // Dm初一的儒略日,v2为月建序号
-                string mc = obb.ymc[(int)(v2 % 12)];    // 月建对应的默认月名称：建子十一,建丑十二,建寅为正……
-                if (Dm >= 1724360 && Dm <= 1729794) mc = obb.ymc[(int)((v2 + 1) % 12)];        //  8.01.15至 23.12.02 建子为十二,其它顺推
-                else if (Dm >= 1807724 && Dm <= 1808699) mc = obb.ymc[(int)((v2 + 1) % 12)];   // 237.04.12至239.12.13 建子为十二,其它顺推
-                else if (Dm >= 1999349 && Dm <= 1999467) mc = obb.ymc[(int)((v2 + 2) % 12)];   // 761.12.02至762.03.30 建子为正月,其它顺推
+                double Dm = TrueNMST.HS[i] + Util.J2000, v2 = int.Parse(TrueNMST.ym[i]);  // Dm初一的儒略日,v2为月建序号
+                string mc = Data.LunarData.ymc[(int)(v2 % 12)];    // 月建对应的默认月名称：建子十一,建丑十二,建寅为正……
+                if (Dm >= 1724360 && Dm <= 1729794) mc = Data.LunarData.ymc[(int)((v2 + 1) % 12)];        //  8.01.15至 23.12.02 建子为十二,其它顺推
+                else if (Dm >= 1807724 && Dm <= 1808699) mc = Data.LunarData.ymc[(int)((v2 + 1) % 12)];   // 237.04.12至239.12.13 建子为十二,其它顺推
+                else if (Dm >= 1999349 && Dm <= 1999467) mc = Data.LunarData.ymc[(int)((v2 + 2) % 12)];   // 761.12.02至762.03.30 建子为正月,其它顺推
                 else if (Dm >= 1973067 && Dm <= 1977112) { if (v2 % 12 == 0) mc = "正"; if (v2 == 2) mc = "一"; }    // 689.12.18至701.01.14 建子为正月,建寅为一月,其它不变
 
                 if (Dm == 1729794 || Dm == 1808699) mc = "拾贰";    // 239.12.13及23.12.02均为十二月,为避免两个连续十二月，此处改名
 
-                实朔实气.ym[i] = mc;
+                TrueNMST.ym[i] = mc;
             }
         }
 
-        #endregion 公共方法(2)
-
-
+      
         
-        #region 转换时增加的私有字段(用于封装成公共属性, 按转换规范 10 命名)
+      
+        
 
-        private static string[] __ym = new string[32];  //各月名称
-        private static LunarInfoListT<double> __ZQ = new LunarInfoListT<double>(31, 0d); //中气表,其中.liqiu是节气立秋的儒略日,计算三伏时用到
-        private static double[] __HS = new double[32];  //合朔表
-        private static double[] __dx = new double[32];  //各月大小
-        private static double[] __Yn = new double[1];   //年计数
-
-        #endregion
-
-
-
-
-        #region 转换时新增加的方法
 
         /// <summary>
         /// 新增方法: 计算节气, 并返回计算的节气总数, 在调用本方法并读取 SSQ.ZQ 数据后, 应该清零 SSQ.ZQ
@@ -511,30 +430,28 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static int calcJieQi(double jd, bool calcMultiPeriod)
         {
-            LunarInfoListT<double> A = 实朔实气.ZQ;
-            double[] B = 实朔实气.HS;    // 中气表,日月合朔表(整日)
+            LunarInfoListT<double> A = TrueNMST.ZQ;
+            double[] B = TrueNMST.HS;    // 中气表,日月合朔表(整日)
             int i;
             double W;
 
             if (!calcMultiPeriod)    // 只计算某年的节气
             {
-                W = LunarHelper.int2((jd - 355 + 183) / 365.2422) * 365.2422 + 355;  // 355是2000.12冬至,得到较靠近jd的冬至估计值
-                if (实朔实气.calc(W, "气") > jd) W -= 365.2422;
-                for (i = 0; i < 25; i++) A[i] = 实朔实气.calc(W + 15.2184 * i, "气");     // 25个节气时刻(北京时间),从冬至开始到下一个冬至以后
-                A.pe1 = 实朔实气.calc(W - 15.2, "气"); A.pe2 = 实朔实气.calc(W - 30.4, "气");  // 补算二气,确保一年中所有月份的“气”全部被计算在内
+                W = Util.int2((jd - 355 + 183) / 365.2422) * 365.2422 + 355;  // 355是2000.12冬至,得到较靠近jd的冬至估计值
+                if (TrueNMST.calc(W, "气") > jd) W -= 365.2422;
+                for (i = 0; i < 25; i++) A[i] = TrueNMST.calc(W + 15.2184 * i, "气");     // 25个节气时刻(北京时间),从冬至开始到下一个冬至以后
+                A.pe1 = TrueNMST.calc(W - 15.2, "气"); A.pe2 = TrueNMST.calc(W - 30.4, "气");  // 补算二气,确保一年中所有月份的“气”全部被计算在内
             }
             else    // 需计算从霜降至下 2 个大寒之后的节气, 用于计算指定日期的所属节气, 上一节气, 下一节气等信息
             {
-                W = LunarHelper.int2((jd - 355 + 183) / 365.2422) * 365.2422 + 296;  // 296是2000.10.23霜降(距200.1.1的天数),得到较靠近jd的霜降估计值
-                if (实朔实气.calc(W, "气") > jd) W -= 365.2422;
-                for (i = 0; i < 31; i++) A[i] = 实朔实气.calc(W + 15.2184 * i, "气");     // 31个节气时刻(北京时间),从霜降至开始到下 2 个大寒以后
+                W = Util.int2((jd - 355 + 183) / 365.2422) * 365.2422 + 296;  // 296是2000.10.23霜降(距200.1.1的天数),得到较靠近jd的霜降估计值
+                if (TrueNMST.calc(W, "气") > jd) W -= 365.2422;
+                for (i = 0; i < 31; i++) A[i] = TrueNMST.calc(W + 15.2184 * i, "气");     // 31个节气时刻(北京时间),从霜降至开始到下 2 个大寒以后
             }
             return ((!calcMultiPeriod ? 25 : 31));
         }
 
 
-
-        #endregion
 
     }
 }

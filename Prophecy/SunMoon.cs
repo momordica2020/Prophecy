@@ -2,21 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SharpSxwnl
+namespace Prophecy
 {
     /// <summary>
     /// 太阳月亮计算类
     /// </summary>
     public class SunMoon
     {
-        #region 构造函数
-
-        public SunMoon()
-        {
-        }
-
-        #endregion
-
 
 
         #region 公共属性(注: 初始转换时为公共字段, 已改写)
@@ -280,18 +272,18 @@ namespace SharpSxwnl
 
         #region 公共方法
         /// <summary>
-        /// 计算 sun_moon 类的成员。参数：T是力学时,站点经度L,纬度fa,海拔high(千米)
+        /// 计算 sun_moon 类的成员。参数：T 力学时,L 站点经度,fa 纬度,high 海拔(千米)
         /// </summary>
         /// <param name="T">力学时</param>
         /// <param name="L">站点经度</param>
         /// <param name="fa">站点纬度</param>
         /// <param name="high">海拔</param>
-        public void calc(double T, double L, double fa, double high)
+        public SunMoon(double T, double L, double fa, double high)
         {
             //基本参数计算
             this.T = T; 
             this.L = L; this.fa = fa;
-            this.dt = JulianDay.deltatT2(T); //TD-UT
+            this.dt = DayJ.deltatT2(T); //TD-UT
             this.jd = T - this.dt;    //UT
             T /= 36525; Coordinate.nutation(T);
             this.dL = Coordinate.dL;   //黄经章
@@ -303,7 +295,7 @@ namespace SharpSxwnl
             //=======月亮========
             //月亮黄道坐标
             Ephemeris.M_coord(T, z, -1, -1, -1); //月球坐标
-            z[0] = LunarHelper.rad2mrad(z[0] + Coordinate.gxc_moonLon(T) + this.dL); z[1] += Coordinate.gxc_moonLat(T);  //补上月球光行差及章动
+            z[0] = Util.rad2mrad(z[0] + Coordinate.gxc_moonLon(T) + this.dL); z[1] += Coordinate.gxc_moonLat(T);  //补上月球光行差及章动
             this.mHJ = z[0]; this.mHW = z[1]; this.mR = z[2]; //月球视黄经,视黄纬,地月质心距
 
             //月球赤道坐标
@@ -311,8 +303,8 @@ namespace SharpSxwnl
             this.mCJ = z[0]; this.mCW = z[1]; //月球视赤经,月球赤纬
 
             //月亮时角计算
-            this.mShiJ = LunarHelper.rad2mrad(this.gst - L - z[0]); //得到此刻天体时角
-            if (this.mShiJ > Math.PI) this.mShiJ -= LunarHelper.pi2;
+            this.mShiJ = Util.rad2mrad(this.gst - L - z[0]); //得到此刻天体时角
+            if (this.mShiJ > Math.PI) this.mShiJ -= Util.pi2;
 
             //修正了视差的赤道坐标
             Coordinate.parallax(z, this.mShiJ, fa, high); //视差修正
@@ -323,7 +315,7 @@ namespace SharpSxwnl
 
             //月亮地平坐标
             Coordinate.llrConv(z, Math.PI / 2 - fa);    //转到地平坐标(只改经纬度)
-            z[0] = LunarHelper.rad2mrad(Math.PI / 2 - z[0]);
+            z[0] = Util.rad2mrad(Math.PI / 2 - z[0]);
             this.mDJ = z[0]; this.mDW = z[1]; //方位角,高度角
             if (z[1] > 0) z[1] += Coordinate.AR2(z[1]); //大气折射修正
             this.mPJ = z[0]; this.mPW = z[1]; //方位角,高度角
@@ -331,7 +323,7 @@ namespace SharpSxwnl
             //=======太阳========
             //太阳黄道坐标
             Ephemeris.E_coord(T, z, -1, -1, -1);   //地球坐标
-            z[0] = LunarHelper.rad2mrad(z[0] + Math.PI + Coordinate.gxc_sunLon(T) + this.dL);  //补上太阳光行差及章动
+            z[0] = Util.rad2mrad(z[0] + Math.PI + Coordinate.gxc_sunLon(T) + this.dL);  //补上太阳光行差及章动
             z[1] = -z[1] + Coordinate.gxc_sunLat(T); //z数组为太阳地心黄道视坐标
             this.sHJ = z[0]; this.sHW = z[1]; this.sR = z[2]; //太阳视黄经,视黄纬,日地质心距
 
@@ -340,8 +332,8 @@ namespace SharpSxwnl
             this.sCJ = z[0]; this.sCW = z[1]; //太阳视赤经,视赤纬
 
             //太阳时角计算
-            this.sShiJ = LunarHelper.rad2mrad(this.gst - L - z[0]); //得到此刻天体时角
-            if (this.sShiJ > Math.PI) this.sShiJ -= LunarHelper.pi2;
+            this.sShiJ = Util.rad2mrad(this.gst - L - z[0]); //得到此刻天体时角
+            if (this.sShiJ > Math.PI) this.sShiJ -= Util.pi2;
 
             //修正了视差的赤道坐标
             Coordinate.parallax(z, this.sShiJ, fa, high); //视差修正
@@ -352,7 +344,7 @@ namespace SharpSxwnl
 
             //太阳地平坐标
             Coordinate.llrConv(z, Math.PI / 2 - fa);
-            z[0] = LunarHelper.rad2mrad(Math.PI / 2 - z[0]);
+            z[0] = Util.rad2mrad(Math.PI / 2 - z[0]);
             //z[1] -= 8.794/rad/z[2]*Math.cos(z[1]); //直接在地平坐标中视差修正(这里把地球看为球形,精度比ZB.parallax()稍差一些)
             this.sDJ = z[0]; this.sDW = z[1]; //方位角,高度角
 
@@ -362,29 +354,29 @@ namespace SharpSxwnl
             //=======其它========
             //时差计算
             double t = T / 10; double t2 = t * t, t3 = t2 * t, t4 = t3 * t, t5 = t4 * t;
-            double Lon = (1753469512 + 6283319653318 * t + 529674 * t2 + 432 * t3 - 1124 * t4 - 9 * t5 + 630 * Math.Cos(6 + 3 * t)) / 1000000000 + Math.PI - 20.5 / LunarHelper.rad; //修正了光行差的太阳平黄经
-            Lon = LunarHelper.rad2mrad(Lon - (this.sCJ - this.dL * Math.Cos(this.E))); //(修正了光行差的平黄经)-(不含dL*cos(E)的视赤经)
-            if (Lon > Math.PI) Lon -= LunarHelper.pi2; //得到时差,单位是弧度
-            this.sc = Lon / LunarHelper.pi2;   //时差(单位:日)
+            double Lon = (1753469512 + 6283319653318 * t + 529674 * t2 + 432 * t3 - 1124 * t4 - 9 * t5 + 630 * Math.Cos(6 + 3 * t)) / 1000000000 + Math.PI - 20.5 / Util.rad; //修正了光行差的太阳平黄经
+            Lon = Util.rad2mrad(Lon - (this.sCJ - this.dL * Math.Cos(this.E))); //(修正了光行差的平黄经)-(不含dL*cos(E)的视赤经)
+            if (Lon > Math.PI) Lon -= Util.pi2; //得到时差,单位是弧度
+            this.sc = Lon / Util.pi2;   //时差(单位:日)
 
             //真太阳与平太阳
-            this.pty = this.jd - L / LunarHelper.pi2;  //平太阳时
-            this.zty = this.jd - L / LunarHelper.pi2 + this.sc; //真太阳时
+            this.pty = this.jd - L / Util.pi2;  //平太阳时
+            this.zty = this.jd - L / Util.pi2 + this.sc; //真太阳时
 
             //视半径
             //this.mRad = XL.moonRad(this.mR,this.mDW);  //月亮视半径(角秒)
             this.mRad = 358473400d / this.mR2; //月亮视半径(角秒)
             this.sRad = 959.63 / this.sR2; //太阳视半径(角秒)
             this.e_mRad = 358473400d / this.mR; //月亮地心视半径(角秒)
-            this.eShadow = (LunarHelper.cs_rEarA / this.mR * LunarHelper.rad - (959.63 - 8.794) / this.sR) * 51 / 50; //地本影在月球向径处的半径(角秒),式中51/50是大气厚度补偿
-            this.eShadow2 = (LunarHelper.cs_rEarA / this.mR * LunarHelper.rad + (959.63 + 8.794) / this.sR) * 51 / 50; //地半影在月球向径处的半径(角秒),式中51/50是大气厚度补偿
+            this.eShadow = (Util.cs_rEarA / this.mR * Util.rad - (959.63 - 8.794) / this.sR) * 51 / 50; //地本影在月球向径处的半径(角秒),式中51/50是大气厚度补偿
+            this.eShadow2 = (Util.cs_rEarA / this.mR * Util.rad + (959.63 + 8.794) / this.sR) * 51 / 50; //地半影在月球向径处的半径(角秒),式中51/50是大气厚度补偿
             this.mIll = Ephemeris.moonIll(T); //月亮被照面比例
 
             //中心食计算
-            if (Math.Abs(LunarHelper.rad2rrad(this.mCJ - this.sCJ)) < 50 / 180 * Math.PI)
+            if (Math.Abs(Util.rad2rrad(this.mCJ - this.sCJ)) < 50 / 180 * Math.PI)
             {
-                Coordinate.line_earth(this.mCJ, this.mCW, this.mR, this.sCJ, this.sCW, this.sR * LunarHelper.cs_AU);
-                this.zx_J = LunarHelper.rad2rrad(this.gst - Coordinate.le_J);
+                Coordinate.line_earth(this.mCJ, this.mCW, this.mR, this.sCJ, this.sCW, this.sR * Util.cs_AU);
+                this.zx_J = Util.rad2rrad(this.gst - Coordinate.le_J);
                 this.zx_W = Coordinate.le_W; //无解返回值是100
             }
             else this.zx_J = this.zx_W = 100;
@@ -402,44 +394,40 @@ namespace SharpSxwnl
             sb.Append("<table width='100%' cellspacing=1 cellpadding=0 bgcolor='#FFC0C0'>");
 
             sb.Append("<tr><td bgcolor=white align=center>");
-            sb.Append("平太阳 " + JulianDay.timeStr(this.pty) + " 真太阳 <font color=red>" + JulianDay.timeStr(this.zty) + "</font><br>");
-            sb.Append("时差 " + LunarHelper.m2fm(this.sc * 86400, 2, 1) + " 月亮被照亮 " + (this.mIll * 100).ToString("F2") + "% ");
+            sb.Append("平太阳 " + DayJ.timeStr(this.pty) + " 真太阳 <font color=red>" + DayJ.timeStr(this.zty) + "</font><br>");
+            sb.Append("时差 " + Util.m2fm(this.sc * 86400, 2, 1) + " 月亮被照亮 " + (this.mIll * 100).ToString("F2") + "% ");
             sb.Append("</td></tr>");
 
             sb.Append("<tr><td bgcolor=white><center><pre style='margin-top: 0; margin-bottom: 0'><font color=blue><b>表一       月亮            太阳</b></font>\r\n");
-            sb.Append("视黄经 " + LunarHelper.rad2str(this.mHJ, 0) + "  " + LunarHelper.rad2str(this.sHJ, 0) + "\r\n");
-            sb.Append("视黄纬 " + LunarHelper.rad2str(this.mHW, 0) + "  " + LunarHelper.rad2str(this.sHW, 0) + "\r\n");
-            sb.Append("视赤经 " + LunarHelper.rad2str(this.mCJ, 1) + "  " + LunarHelper.rad2str(this.sCJ, 1) + "\r\n");
-            sb.Append("视赤纬 " + LunarHelper.rad2str(this.mCW, 0) + "  " + LunarHelper.rad2str(this.sCW, 0) + "\r\n");
+            sb.Append("视黄经 " + Util.rad2str(this.mHJ, 0) + "  " + Util.rad2str(this.sHJ, 0) + "\r\n");
+            sb.Append("视黄纬 " + Util.rad2str(this.mHW, 0) + "  " + Util.rad2str(this.sHW, 0) + "\r\n");
+            sb.Append("视赤经 " + Util.rad2str(this.mCJ, 1) + "  " + Util.rad2str(this.sCJ, 1) + "\r\n");
+            sb.Append("视赤纬 " + Util.rad2str(this.mCW, 0) + "  " + Util.rad2str(this.sCW, 0) + "\r\n");
             sb.Append("距离     " + this.mR.ToString("F0") + "千米          " + this.sR.ToString("F6") + "AU" + "\r\n");
             sb.Append("</pre></center></td></tr>");
 
             sb.Append("<tr><td bgcolor=white><center><pre style='margin-top: 0; margin-bottom: 0'><font color=blue><b>表二       月亮            太阳</b></font>\r\n");
-            sb.Append("方位角 " + LunarHelper.rad2str(this.mPJ, 0) + "  " + LunarHelper.rad2str(this.sPJ, 0) + "\r\n");
-            sb.Append("高度角 " + LunarHelper.rad2str(this.mPW, 0) + "  " + LunarHelper.rad2str(this.sPW, 0) + "\r\n");
-            sb.Append("时角   " + LunarHelper.rad2str(this.mShiJ, 0) + "  " + LunarHelper.rad2str(this.sShiJ, 0) + "\r\n");
-            sb.Append("视半径(观测点) " + LunarHelper.m2fm(this.mRad, 2, 0) + "     " + LunarHelper.m2fm(this.sRad, 2, 0) + "\r\n");
+            sb.Append("方位角 " + Util.rad2str(this.mPJ, 0) + "  " + Util.rad2str(this.sPJ, 0) + "\r\n");
+            sb.Append("高度角 " + Util.rad2str(this.mPW, 0) + "  " + Util.rad2str(this.sPW, 0) + "\r\n");
+            sb.Append("时角   " + Util.rad2str(this.mShiJ, 0) + "  " + Util.rad2str(this.sShiJ, 0) + "\r\n");
+            sb.Append("视半径(观测点) " + Util.m2fm(this.mRad, 2, 0) + "     " + Util.m2fm(this.sRad, 2, 0) + "\r\n");
             sb.Append("</pre></center></td></tr>");
 
             if (fs != 0)
             {
                 sb.Append("<tr><td bgcolor=white align=center>");
-                sb.Append("力学时 " + JulianDay.setFromJDay_str(this.T + LunarHelper.J2000));
+                sb.Append("力学时 " + DayJ.setFromJDay_str(this.T + Util.J2000));
                 sb.Append(" ΔT=" + (this.dt * 86400).ToString("F1") + "秒<br>");
-                sb.Append("黄经章 " + (this.dL / LunarHelper.pi2 * 360 * 3600).ToString("F2") + "\" ");
-                sb.Append("交角章 " + (this.dE / LunarHelper.pi2 * 360 * 3600).ToString("F2") + "\" ");
-                sb.Append("ε=" + LunarHelper.trim(LunarHelper.rad2str(this.E, 0)));
+                sb.Append("黄经章 " + (this.dL / Util.pi2 * 360 * 3600).ToString("F2") + "\" ");
+                sb.Append("交角章 " + (this.dE / Util.pi2 * 360 * 3600).ToString("F2") + "\" ");
+                sb.Append("ε=" + Util.trim(Util.rad2str(this.E, 0)));
                 sb.Append("</td></tr>");
             }
             sb.Append("</table>");
             return sb.ToString();
         }
 
-        #endregion 公共方法
 
-
-
-        #region 转换时新增的方法
 
         /// <summary>
         /// 把太阳月亮信息形成纯文本字符串
@@ -449,30 +437,30 @@ namespace SharpSxwnl
         public string toText(double fs)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("平太阳 " + JulianDay.timeStr(this.pty) + " 真太阳 " + JulianDay.timeStr(this.zty) + "\r\n");
-            sb.Append("时差 " + LunarHelper.m2fm(this.sc * 86400, 2, 1) + " 月亮被照亮 " + (this.mIll * 100).ToString("F2") + "% ");
+            sb.Append("平太阳 " + DayJ.timeStr(this.pty) + " 真太阳 " + DayJ.timeStr(this.zty) + "\r\n");
+            sb.Append("时差 " + Util.m2fm(this.sc * 86400, 2, 1) + " 月亮被照亮 " + (this.mIll * 100).ToString("F2") + "% ");
             sb.Append("\r\n");
 
             sb.Append("\r\n表一       月亮            太阳\r\n");
-            sb.Append("视黄经 " + LunarHelper.rad2str(this.mHJ, 0) + "  " + LunarHelper.rad2str(this.sHJ, 0) + "\r\n");
-            sb.Append("视黄纬 " + LunarHelper.rad2str(this.mHW, 0) + "  " + LunarHelper.rad2str(this.sHW, 0) + "\r\n");
-            sb.Append("视赤经 " + LunarHelper.rad2str(this.mCJ, 1) + "  " + LunarHelper.rad2str(this.sCJ, 1) + "\r\n");
-            sb.Append("视赤纬 " + LunarHelper.rad2str(this.mCW, 0) + "  " + LunarHelper.rad2str(this.sCW, 0) + "\r\n");
+            sb.Append("视黄经 " + Util.rad2str(this.mHJ, 0) + "  " + Util.rad2str(this.sHJ, 0) + "\r\n");
+            sb.Append("视黄纬 " + Util.rad2str(this.mHW, 0) + "  " + Util.rad2str(this.sHW, 0) + "\r\n");
+            sb.Append("视赤经 " + Util.rad2str(this.mCJ, 1) + "  " + Util.rad2str(this.sCJ, 1) + "\r\n");
+            sb.Append("视赤纬 " + Util.rad2str(this.mCW, 0) + "  " + Util.rad2str(this.sCW, 0) + "\r\n");
             sb.Append("距离     " + this.mR.ToString("F0") + "千米          " + this.sR.ToString("F6") + "AU" + "\r\n");
 
             sb.Append("\r\n表二       月亮            太阳\r\n");
-            sb.Append("方位角 " + LunarHelper.rad2str(this.mPJ, 0) + "  " + LunarHelper.rad2str(this.sPJ, 0) + "\r\n");
-            sb.Append("高度角 " + LunarHelper.rad2str(this.mPW, 0) + "  " + LunarHelper.rad2str(this.sPW, 0) + "\r\n");
-            sb.Append("时角   " + LunarHelper.rad2str(this.mShiJ, 0) + "  " + LunarHelper.rad2str(this.sShiJ, 0) + "\r\n");
-            sb.Append("视半径(观测点) " + LunarHelper.m2fm(this.mRad, 2, 0) + "     " + LunarHelper.m2fm(this.sRad, 2, 0) + "\r\n");
+            sb.Append("方位角 " + Util.rad2str(this.mPJ, 0) + "  " + Util.rad2str(this.sPJ, 0) + "\r\n");
+            sb.Append("高度角 " + Util.rad2str(this.mPW, 0) + "  " + Util.rad2str(this.sPW, 0) + "\r\n");
+            sb.Append("时角   " + Util.rad2str(this.mShiJ, 0) + "  " + Util.rad2str(this.sShiJ, 0) + "\r\n");
+            sb.Append("视半径(观测点) " + Util.m2fm(this.mRad, 2, 0) + "     " + Util.m2fm(this.sRad, 2, 0) + "\r\n");
 
             if (fs != 0)
             {
-                sb.Append("\r\n力学时 " + JulianDay.setFromJDay_str(this.T + LunarHelper.J2000));
+                sb.Append("\r\n力学时 " + DayJ.setFromJDay_str(this.T + Util.J2000));
                 sb.Append(" ΔT=" + (this.dt * 86400).ToString("F1") + "秒\r\n");
-                sb.Append("黄经章 " + (this.dL / LunarHelper.pi2 * 360 * 3600).ToString("F2") + "\" ");
-                sb.Append("交角章 " + (this.dE / LunarHelper.pi2 * 360 * 3600).ToString("F2") + "\" ");
-                sb.Append("\r\nε=" + LunarHelper.trim(LunarHelper.rad2str(this.E, 0)));
+                sb.Append("黄经章 " + (this.dL / Util.pi2 * 360 * 3600).ToString("F2") + "\" ");
+                sb.Append("交角章 " + (this.dE / Util.pi2 * 360 * 3600).ToString("F2") + "\" ");
+                sb.Append("\r\nε=" + Util.trim(Util.rad2str(this.E, 0)));
             }
             return sb.ToString();
         }

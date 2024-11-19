@@ -23,14 +23,13 @@ using System.Text;
 using System.Xml;
 using System.Text.RegularExpressions;
 
-namespace SharpSxwnl
+namespace Prophecy.Data
 {
     /// <summary>
     /// 经纬及时区类
     /// </summary>
-    public static class JWdata
+    public partial class JWdata
     {
-        #region 公共属性(注: 初始转换时为公共字段, 已改写, 请参阅“转换时增加的私有字段”)
 
         /// <summary>
         /// 经度(弧度值)
@@ -45,41 +44,31 @@ namespace SharpSxwnl
         /// <summary>
         /// 存储压缩的各地经纬度数据, 功能类似于交错数组 string[][]
         /// </summary>
-        public static List<List<string>> JWv
-        {
-            get { return JWdata.__JWv; }
-            set { JWdata.__JWv = value; }
-        }
+        public static List<List<string>> JWv = new List<List<string>>();
 
         /// <summary>
         /// 存储压缩的各时区数据, 功能类似于交错数组 string[][]
         /// </summary>
-        public static List<List<string>> SQv
-        {
-            get { return JWdata.__SQv; }
-            set { JWdata.__SQv = value; }
-        }
-
-        #endregion
+        public static List<List<string>> SQv = new List<List<string>>();
 
 
+        private static int nothing = Init();     // C#: 通过一个私有字段的赋值来初始化本类的数组
 
 
-        #region 私有方法
 
         /// <summary>
         /// 初始化数据
         /// </summary>
-        private static int InitJWdata()
+        private static int Init()
         {
-            JWdata.DaylightInfo = String.Empty;
-            JWdata.SQDescription = String.Empty;
+            DaylightInfo = string.Empty;
+            SQDescription = string.Empty;
 
             //----------------------------------------------------------------------------------------
             // 加载 Xml 数据:  各地经纬度表, 时区表
             // 注: 加载时自动去除 Xml 各行数据前、后端的所有空白字符, 但对数据内部的空白字符不作处理
             //----------------------------------------------------------------------------------------
-            if (LunarHelper.SxwnlXmlData != null)
+            if (Util.SxwnlXmlData != null)
             {
                 const string JWvXPath = "SharpSxwnl/SxwnlData/Data[@Id = 'JWdata_JWv']";
                 const string SQvXPath = "SharpSxwnl/SxwnlData/Data[@Id = 'JWdata_SQv']";
@@ -90,27 +79,27 @@ namespace SharpSxwnl
 
 
                 // 读取并解开各地经纬度表
-                foundNode = LunarHelper.SxwnlXmlData.SelectSingleNode(JWvXPath);
+                foundNode = Util.SxwnlXmlData.SelectSingleNode(JWvXPath);
                 if (foundNode != null)
                 {
                     string[] strJWv = regexToTrim.Replace(foundNode.InnerText, "").Split(lineFlags, StringSplitOptions.RemoveEmptyEntries);
                     for (int i = 0; i < strJWv.Length; i++)
                     {
-                        JWdata.JWv.Add(new List<string>());
-                        JWdata.JWv[i].AddRange(regexToTrim.Replace(strJWv[i], "").Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));  //解开清单
+                        JWv.Add(new List<string>());
+                        JWv[i].AddRange(regexToTrim.Replace(strJWv[i], "").Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));  //解开清单
                     }
                 }
 
 
                 // 读取并解开各时区表
-                foundNode = LunarHelper.SxwnlXmlData.SelectSingleNode(SQvXPath);
+                foundNode = Util.SxwnlXmlData.SelectSingleNode(SQvXPath);
                 if (foundNode != null)
                 {
                     string[] strSQv = regexToTrim.Replace(foundNode.InnerText, "").Split(lineFlags, StringSplitOptions.RemoveEmptyEntries);
                     for (int i = 0; i < strSQv.Length; i++)
                     {
-                        JWdata.SQv.Add(new List<string>());
-                        JWdata.SQv[i].AddRange(regexToTrim.Replace(strSQv[i], "").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));  //解开各地时区清单
+                        SQv.Add(new List<string>());
+                        SQv[i].AddRange(regexToTrim.Replace(strSQv[i], "").Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries));  //解开各地时区清单
                     }
                 }
 
@@ -120,11 +109,8 @@ namespace SharpSxwnl
         }
 
 
-        #endregion
 
 
-
-        #region 公共方法
 
         /// <summary>
         /// 经纬度解压缩
@@ -138,19 +124,14 @@ namespace SharpSxwnl
             for (i = 0; i < 4; i++)    //对经纬度解压缩
             {
                 vAscii[i] = vChar[i];
-                if (vAscii[i] > 96) vAscii[i] -= (97 - 36);
-                else if (vAscii[i] > 64) vAscii[i] -= (65 - 10);
+                if (vAscii[i] > 96) vAscii[i] -= 97 - 36;
+                else if (vAscii[i] > 64) vAscii[i] -= 65 - 10;
                 else vAscii[i] -= 48;
             }
-            JWdata.J = -(vAscii[2] + vAscii[3] / 60d + 73) / 180d * Math.PI;    // C#: 注意数据类型
-            JWdata.W = (vAscii[0] + vAscii[1] / 60d) / 180d * Math.PI;
+            J = -(vAscii[2] + vAscii[3] / 60d + 73) / 180d * Math.PI;    // C#: 注意数据类型
+            W = (vAscii[0] + vAscii[1] / 60d) / 180d * Math.PI;
         }
 
-        #endregion
-
-
-
-        #region 转换时新增的公共属性和方法
 
         /// <summary>
         /// 时差
@@ -175,31 +156,12 @@ namespace SharpSxwnl
         public static void SQdecode(string strSQInfo)
         {
             string[] SQInfos = strSQInfo.Split('#');
-            JWdata.SQTimeDifference = double.Parse(SQInfos[0]);
-            JWdata.DaylightInfo = SQInfos[1];
-            JWdata.SQDescription = SQInfos[2];
+            SQTimeDifference = double.Parse(SQInfos[0]);
+            DaylightInfo = SQInfos[1];
+            SQDescription = SQInfos[2];
         }
 
-        #endregion
 
-
-
-
-        #region 转换时增加的私有字段(主要用于封装成公共属性, 按转换规范 10 命名), 及其初始化
-
-        /// <summary>
-        /// 存储压缩的各地经纬度数据
-        /// </summary>
-        private static List<List<string>> __JWv = new List<List<string>>();    // C#: 注: 与下面的数据相关, 共 32 个省区
-
-        /// <summary>
-        /// 存储压缩的各时区数据
-        /// </summary>
-        private static List<List<string>> __SQv = new List<List<string>>();    // C#: 注: 与下面的数据相关, 共 6 个大洲
-
-        private static int nothing = JWdata.InitJWdata();     // C#: 通过一个私有字段的赋值来初始化本类的数组
-
-        #endregion
 
     }
 }

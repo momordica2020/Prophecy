@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SharpSxwnl
+namespace Prophecy
 {
-    public class 四柱
+    /// <summary>
+    /// 四柱
+    /// </summary>
+    public class FourPillars
     {
     
         public class 排盘

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SharpSxwnl
+namespace Prophecy
 {
     /// <summary>
     /// 日月的升中天降,不考虑气温和气压的影响
@@ -69,9 +69,9 @@ namespace SharpSxwnl
         {
             Ephemeris.M_coord((jd + SZJ.dt) / 36525, z, 30, 20, 8); //低精度月亮赤经纬
             Coordinate.llrConv(z, SZJ.E); //转为赤道坐标
-            z.H = LunarHelper.rad2mrad(Coordinate.gst(jd, SZJ.dt) - SZJ.L - z[0]);
-            if (z.H > Math.PI) z.H -= LunarHelper.pi2; //得到此刻天体时角
-            if (H0 != 0) z.H0 = SZJ.getH(0.7275 * LunarHelper.cs_rEar / z[2] - 34 * 60 / LunarHelper.rad, z[1]); //升起对应的时角
+            z.H = Util.rad2mrad(Coordinate.gst(jd, SZJ.dt) - SZJ.L - z[0]);
+            if (z.H > Math.PI) z.H -= Util.pi2; //得到此刻天体时角
+            if (H0 != 0) z.H0 = SZJ.getH(0.7275 * Util.cs_rEar / z[2] - 34 * 60 / Util.rad, z[1]); //升起对应的时角
         }
 
 
@@ -82,12 +82,12 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static LunarInfoListT<double> Mt(double jd)
         {
-            SZJ.dt = JulianDay.deltatT2(jd);
+            SZJ.dt = DayJ.deltatT2(jd);
             SZJ.E = Coordinate.ObliquityOfEcliptic(jd / 36525);
-            jd -= LunarHelper.mod2(0.1726222 + 0.966136808032357 * jd - 0.0366 * SZJ.dt - SZJ.L / LunarHelper.pi2, 1); //查找最靠近当日中午的月上中天,mod2的第1参数为本地时角近似值
+            jd -= Util.mod2(0.1726222 + 0.966136808032357 * jd - 0.0366 * SZJ.dt - SZJ.L / Util.pi2, 1); //查找最靠近当日中午的月上中天,mod2的第1参数为本地时角近似值
 
             LunarInfoListT<double> r = new LunarInfoListT<double>(3, 0d);
-            double sv = LunarHelper.pi2 * 0.966;
+            double sv = Util.pi2 * 0.966;
             r.z__ = r.s__ = r.j__ = r.c__ = r.h__ = jd;
             SZJ.Mcoord(jd, 1, r); //月亮坐标
             r.s__ += (-r.H0 - r.H) / sv;
@@ -109,11 +109,11 @@ namespace SharpSxwnl
         /// <param name="z"></param>
         public static void Scoord(double jd, double H0, double H1, LunarInfoListT<double> z)
         {
-            z[0] = Ephemeris.E_Lon((jd + SZJ.dt) / 36525, 5) + Math.PI - 20.5 / LunarHelper.rad;  //太阳坐标(修正了光行差)
+            z[0] = Ephemeris.E_Lon((jd + SZJ.dt) / 36525, 5) + Math.PI - 20.5 / Util.rad;  //太阳坐标(修正了光行差)
             z[1] = 0d; z[2] = 1d;       // C#: 添加 d, 强制为 double 类型, 否则在把该元素显式转换为 double 时会出错
             Coordinate.llrConv(z, SZJ.E);       // 转为赤道坐标
-            z.H = LunarHelper.rad2rrad(Coordinate.gst(jd, SZJ.dt) - SZJ.L - z[0]); //得到此刻天体时角
-            if (H0 != 0) z.H0 = SZJ.getH(-50 * 60 / LunarHelper.rad, z[1]);  //地平以下50分
+            z.H = Util.rad2rrad(Coordinate.gst(jd, SZJ.dt) - SZJ.L - z[0]); //得到此刻天体时角
+            if (H0 != 0) z.H0 = SZJ.getH(-50 * 60 / Util.rad, z[1]);  //地平以下50分
             if (H1 != 0) z.H1 = SZJ.getH(-Math.PI / 30, z[1]);  // 地平以下6度
         }
 
@@ -125,12 +125,12 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static LunarInfoListT<double> St(double jd)
         {
-            SZJ.dt = JulianDay.deltatT2(jd);
+            SZJ.dt = DayJ.deltatT2(jd);
             SZJ.E = Coordinate.ObliquityOfEcliptic(jd / 36525);
-            jd -= LunarHelper.mod2(jd - SZJ.L / LunarHelper.pi2, 1); //查找最靠近当日中午的日上中天,mod2的第1参数为本地时角近似值
+            jd -= Util.mod2(jd - SZJ.L / Util.pi2, 1); //查找最靠近当日中午的日上中天,mod2的第1参数为本地时角近似值
 
             LunarInfoListT<double> r = new LunarInfoListT<double>(3, 0d);
-            double sv = LunarHelper.pi2;
+            double sv = Util.pi2;
             r.z__ = r.s__ = r.j__ = r.c__ = r.h__ = jd;
             SZJ.Scoord(jd, 1, 1, r);       //太阳坐标
             r.s__ += (-r.H0 - r.H) / sv;   //升起
@@ -182,18 +182,18 @@ namespace SharpSxwnl
                 { 
                     //太阳
                     r = SZJ.St(jd + i + sq);
-                    ((SZJ.rts[i])).s = JulianDay.timeStr(r.s__ - sq);    //升
-                    ((SZJ.rts[i])).z = JulianDay.timeStr(r.z__ - sq);    //中
-                    ((SZJ.rts[i])).j = JulianDay.timeStr(r.j__ - sq);    //降
-                    ((SZJ.rts[i])).c = JulianDay.timeStr(r.c__ - sq);    //晨
-                    ((SZJ.rts[i])).h = JulianDay.timeStr(r.h__ - sq);    //昏
-                    ((SZJ.rts[i])).ch = JulianDay.timeStr(r.h__ - r.c__ - 0.5);   //光照时间,timeStr()内部+0.5,所以这里补上-0.5
-                    ((SZJ.rts[i])).sj = JulianDay.timeStr(r.j__ - r.s__ - 0.5);   //昼长
+                    ((SZJ.rts[i])).s = DayJ.timeStr(r.s__ - sq);    //升
+                    ((SZJ.rts[i])).z = DayJ.timeStr(r.z__ - sq);    //中
+                    ((SZJ.rts[i])).j = DayJ.timeStr(r.j__ - sq);    //降
+                    ((SZJ.rts[i])).c = DayJ.timeStr(r.c__ - sq);    //晨
+                    ((SZJ.rts[i])).h = DayJ.timeStr(r.h__ - sq);    //昏
+                    ((SZJ.rts[i])).ch = DayJ.timeStr(r.h__ - r.c__ - 0.5);   //光照时间,timeStr()内部+0.5,所以这里补上-0.5
+                    ((SZJ.rts[i])).sj = DayJ.timeStr(r.j__ - r.s__ - 0.5);   //昼长
                 }
                 r = SZJ.Mt(jd + i + sq);     //月亮
-                c = LunarHelper.int2(r.s__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Ms = JulianDay.timeStr(r.s__ - sq);
-                c = LunarHelper.int2(r.z__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Mz = JulianDay.timeStr(r.z__ - sq);
-                c = LunarHelper.int2(r.j__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Mj = JulianDay.timeStr(r.j__ - sq);
+                c = Util.int2(r.s__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Ms = DayJ.timeStr(r.s__ - sq);
+                c = Util.int2(r.z__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Mz = DayJ.timeStr(r.z__ - sq);
+                c = Util.int2(r.j__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Mj = DayJ.timeStr(r.j__ - sq);
             }
             SZJ.rts.dn = n;
         }

@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpSxwnl", "SharpSxwnl\SharpSxwnl.csproj", "{B37552EC-C668-4A11-977A-16BC1D21B847}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Prophecy", "Prophecy\Prophecy.csproj", "{B37552EC-C668-4A11-977A-16BC1D21B847}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestSharpSxwnl", "TestSharpSxwnl\TestSharpSxwnl.csproj", "{437A253A-DB9C-43A5-AC32-81AB24C7F053}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProphecy", "TestProphecy\TestProphecy.csproj", "{437A253A-DB9C-43A5-AC32-81AB24C7F053}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test", "test\test.csproj", "{771D44CF-541A-44C6-94DA-2997E96F6267}"
 EndProject

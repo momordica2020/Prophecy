@@ -5,13 +5,14 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Globalization;
 using System.Xml;
+using Prophecy.Data;
 
-namespace SharpSxwnl
+namespace Prophecy
 {
     /// <summary>
     /// 助理类
     /// </summary>
-    public static class LunarHelper
+    public static class Util
     {
 
 
@@ -60,7 +61,6 @@ namespace SharpSxwnl
         #endregion 常量定义
 
 
-        #region 公共方法
         /// <summary>
         /// 将弧度转为指定格式的字符串(度分秒, 或时分秒)
         /// </summary>
@@ -134,7 +134,7 @@ namespace SharpSxwnl
         {
             string gn = "";
             if (v < 0) { v = -v; gn = "-"; }
-            double f = LunarHelper.int2(v / 60), m = v - f * 60;
+            double f = Util.int2(v / 60), m = v - f * 60;
             if (fs != 0) 
                 return gn + f + "分" + m.ToString("F" + fx) + "秒";
             else  
@@ -200,8 +200,6 @@ namespace SharpSxwnl
         }
 
 
-        #endregion 公共方法
-
 
 
 
@@ -235,24 +233,24 @@ namespace SharpSxwnl
             string q = strC.Substring(0, 1);
             if (q == "B" || q == "b" || q == "*")     //通用纪年法(公元前)
             {
-                y = 1 - LunarHelper.VAL(strC.Substring(1), 1);
+                y = 1 - Util.VAL(strC.Substring(1), 1);
                 if (y > 0)
                 {
-                    MessageBox.Show("通用纪法的公元前纪法从 B.C.1 年开始，并且没有公元 0 年！", 
-                                    "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    //MessageBox.Show("通用纪法的公元前纪法从 B.C.1 年开始，并且没有公元 0 年！", 
+                    //                "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return -10000;
                 }
             }
-            else y = LunarHelper.VAL(strC, 1);
+            else y = Util.VAL(strC, 1);
 
             if (y < -4712)
             {
-                MessageBox.Show("不得小于 B.C.4713 年！", "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning); 
+                //MessageBox.Show("不得小于 B.C.4713 年！", "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning); 
                 return -10000;
             }
             if (y > 9999)
             {
-                MessageBox.Show("超过9999年的农历计算很不准。", "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                //MessageBox.Show("超过9999年的农历计算很不准。", "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
             return y;
@@ -268,7 +266,7 @@ namespace SharpSxwnl
         /// <returns></returns>
         public static string Ayear2year<T>(T y)
         {
-            int result = LunarHelper.VAL(y.ToString(), 1);
+            int result = Util.VAL(y.ToString(), 1);
             if (result <= 0) return "B" + (-result + 1);
             return result.ToString();
         }
@@ -294,23 +292,23 @@ namespace SharpSxwnl
                 case 1:
                     {
                         // C#: 为避免 Substring 方法超出范围取子串引发异常, 改用本类中的静态方法 SUBSTRING
-                        a = LunarHelper.VAL(LunarHelper.SUBSTRING(timeStr[0], 0, 2), 1);
-                        b = LunarHelper.VAL(LunarHelper.SUBSTRING(timeStr[0], 2, 2), 1);
-                        c = LunarHelper.VAL(LunarHelper.SUBSTRING(timeStr[0], 4, 2), 1);
+                        a = Util.VAL(Util.SUBSTRING(timeStr[0], 0, 2), 1);
+                        b = Util.VAL(Util.SUBSTRING(timeStr[0], 2, 2), 1);
+                        c = Util.VAL(Util.SUBSTRING(timeStr[0], 4, 2), 1);
                         break;
                     }
                 case 2:
                     {
-                        a = LunarHelper.VAL(timeStr[0], 1);
-                        b = LunarHelper.VAL(timeStr[1], 1);
+                        a = Util.VAL(timeStr[0], 1);
+                        b = Util.VAL(timeStr[1], 1);
                         c = 0;
                         break;
                     }
                 default:
                     {
-                        a = LunarHelper.VAL(timeStr[0], 1);
-                        b = LunarHelper.VAL(timeStr[1], 1);
-                        c = LunarHelper.VAL(timeStr[2], 1);
+                        a = Util.VAL(timeStr[0], 1);
+                        b = Util.VAL(timeStr[1], 1);
+                        c = Util.VAL(timeStr[2], 1);
                         break;
                     }
             }
@@ -333,45 +331,45 @@ namespace SharpSxwnl
         /// <param name="time">时间串</param>
         /// <param name="longitudeStr">经度(度分秒格式)</param>
         /// <returns>八字字符串</returns>
-        public static string ML_calc<T>(OB ob, BaZiType type, double curTZ, T year, T month, T day, string time, string longitudeStr, BaZiTypeS baziTypes)
+        public static string ML_calc<T>(Day ob, BaZiType type, double curTZ, T year, T month, T day, string time, string longitudeStr, BaZiTypeS baziTypes)
         {
-            double y = LunarHelper.year2Ayear(year);
+            double y = Util.year2Ayear(year);
             if (y == -10000)
                 return String.Empty;
 
-            string timeName = (type == BaZiType.真太阳时八字 ? "真太阳 " :
-                                 (type == BaZiType.平太阳时八字 ? "平太阳 " : "北京时间 "));
+            string timeName = (type == BaZiType.TrueLocalSolar ? "真太阳 " :
+                                 (type == BaZiType.PingLocalSolar ? "平太阳 " : "北京时间 "));
 
-            double t = LunarHelper.timeStr2hour(time);
+            double t = Util.timeStr2hour(time);
 
             double longitude;
-            if (type == BaZiType.北京时间八字)
-                longitude = LunarHelper.str2rad("-120°");    // 解析东经120°经度为弧度
+            if (type == BaZiType.TrueBJ)
+                longitude = Util.str2rad("-120°");    // 解析东经120°经度为弧度
             else
-                longitude = LunarHelper.str2rad(longitudeStr);    // 解析经度为弧度
+                longitude = Util.str2rad(longitudeStr);    // 解析经度为弧度
 
-            double jd = JulianDay.JD__(y, LunarHelper.VAL(month.ToString()), 
-                                LunarHelper.VAL(day.ToString()) + t / 24);
+            double jd = DayJ.JD__(y, Util.VAL(month.ToString()), 
+                                Util.VAL(day.ToString()) + t / 24);
 
-            if (type == BaZiType.真太阳时八字)
+            if (type == BaZiType.TrueLocalSolar)
             {
-                obb.mingLiBaZi(jd + curTZ / 24 - LunarHelper.J2000, longitude, ob, baziTypes);    // 八字计算, 独立于 Lunar 类
+                Data.LunarData.mingLiBaZi(jd + curTZ / 24 - Util.J2000, longitude, ob, baziTypes);    // 八字计算, 独立于 Lunar 类
                 timeName += ob.bz_zty;
             }
             else
             {
-                obb.mingLiBaZiNormal(jd + curTZ / 24 - LunarHelper.J2000, longitude, ob, baziTypes);    // 八字计算, 独立于 Lunar 类
+                Data.LunarData.mingLiBaZiNormal(jd + curTZ / 24 - Util.J2000, longitude, ob, baziTypes);    // 八字计算, 独立于 Lunar 类
                 timeName += ob.bz_pty;
             }
 
             // C#: 新增的代码段
-            JulianDay.setFromJDay(jd);
-            double yearAjusted = JulianDay.Y;
-            double monthAjusted = JulianDay.M;
-            double dayAjusted = JulianDay.D;
+            DayJ.setFromJDay(jd);
+            double yearAjusted = DayJ.Y;
+            double monthAjusted = DayJ.M;
+            double dayAjusted = DayJ.D;
 
-            return "[日标]：" + "公历 " + yearAjusted + "-" + monthAjusted + "-" + dayAjusted + " 儒略日数 " + LunarHelper.int2(jd + 0.5) + 
-                                " 距2000年首" + LunarHelper.int2(jd + 0.5 - LunarHelper.J2000) + "日"
+            return "[日标]：" + "公历 " + yearAjusted + "-" + monthAjusted + "-" + dayAjusted + " 儒略日数 " + Util.int2(jd + 0.5) + 
+                                " 距2000年首" + Util.int2(jd + 0.5 - Util.J2000) + "日"
                    + "\r\n[八字]：" + ob.bz_jn + "年 " + ob.bz_jy + "月 " + ob.bz_jr + "日 " + ob.bz_js + "时 " + timeName
                    + "\r\n[纪时]：" + ob.bz_JS
                    + "\r\n[时标]：" + "23　 01　 03　 05　 07　 09　 11　 13　 15　 17　 19　 21　 23";
@@ -395,13 +393,13 @@ namespace SharpSxwnl
             if (strD.Length > 0)
             {
                 double a = 0, b = 0, c = 0;
-                a = LunarHelper.VAL(strD[0]) / 180 * Math.PI;                     // 1°= 1/180*PI ≈ 0.017453292519943 弧度
+                a = Util.VAL(strD[0]) / 180 * Math.PI;                     // 1°= 1/180*PI ≈ 0.017453292519943 弧度
                 if (strD.Length > 1)
                 {
-                    b = LunarHelper.VAL(strD[1]) / 60 / 180 * Math.PI;            // 1' = (1/60)°≈ 0.000290888208666 弧度
+                    b = Util.VAL(strD[1]) / 60 / 180 * Math.PI;            // 1' = (1/60)°≈ 0.000290888208666 弧度
                     if (strD.Length > 2)
                     {
-                        c = LunarHelper.VAL(strD[2]) / 60 / 180 / 60 * Math.PI;   // 1" = (1/60)' ≈ 0.000004848136811 弧度
+                        c = Util.VAL(strD[2]) / 60 / 180 / 60 * Math.PI;   // 1" = (1/60)' ≈ 0.000004848136811 弧度
                     }
                 }
                 if (a > 0)
@@ -526,12 +524,12 @@ namespace SharpSxwnl
 
         public static int VAL(string strExpression, int getIntegerFlag)
         {
-            return (int)LunarHelper.VAL(strExpression);
+            return (int)Util.VAL(strExpression);
         }
 
         public static long VAL(string strExpression, long getIntegerFlag)
         {
-            return (long)LunarHelper.VAL(strExpression);
+            return (long)Util.VAL(strExpression);
         }
         
 
@@ -561,15 +559,15 @@ namespace SharpSxwnl
 
 
         // 保存 Xml 数据
-        private static XmlDocument __SxwnlXmlData = LunarHelper.LoadXmlData();
+        private static XmlDocument __SxwnlXmlData = Util.LoadXmlData();
 
         /// <summary>
         /// XmlDocument 对象, 用于读写类的 Xml 数据
         /// </summary>
         public static XmlDocument SxwnlXmlData
         {
-            get { return LunarHelper.__SxwnlXmlData; }
-            set { LunarHelper.__SxwnlXmlData = value; }
+            get { return Util.__SxwnlXmlData; }
+            set { Util.__SxwnlXmlData = value; }
         }
 
     }
@@ -580,10 +578,7 @@ namespace SharpSxwnl
 
 
 
-    #region 转换时新增的枚举
 
-
-    #region 八字类型
     /// <summary>
     /// 八字类型(时间)
     /// </summary>
@@ -592,17 +587,17 @@ namespace SharpSxwnl
         /// <summary>
         /// 当地真太阳时八字
         /// </summary>
-        真太阳时八字,
+        TrueLocalSolar,
 
         /// <summary>
         /// 当地平太阳时八字
         /// </summary>
-        平太阳时八字,
+        PingLocalSolar,
 
         /// <summary>
         /// 北京时间八字(东经120度)
         /// </summary>
-        北京时间八字
+        TrueBJ
     }
 
 
@@ -614,29 +609,28 @@ namespace SharpSxwnl
         /// <summary>
         /// 常规(北半球八字)
         /// </summary>
-        默认,
+        Default,
 
         /// <summary>
         /// 南半球八字: 天冲地冲(月天干地支均与北半球的取法相冲)
         /// </summary>
-        天冲地冲,
+        TCDC,
 
         /// <summary>
         /// 南半球八字: 天克地冲(月地支与北半球的取法相冲, 按五虎遁月法排月天干)
         /// </summary>
-        天克地冲,
+        TKDC,
 
         /// <summary>
         /// 南半球八字: 天同地冲(月地支与北半球的取法相冲, 月天干与北半球的取法相同)
         /// </summary>
-        天同地冲
+        TTDC
 
     }
 
-    #endregion 八字类型
+  
 
 
-    #region 计算节气的类型
     /// <summary>
     /// 计算节气的类型
     /// </summary>
@@ -657,11 +651,9 @@ namespace SharpSxwnl
         /// </summary>
         计算节和气
     }
-    #endregion 计算节气的类型
 
 
-    #endregion
-
+   
 }
 
 
