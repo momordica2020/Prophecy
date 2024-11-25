@@ -40,7 +40,7 @@ namespace Prophecy.Data
         /// </summary>
         /// <param name="u"></param>
         /// <param name="r"></param>
-        public static void getDayNameL(Day u, Day r)
+        public static void getDayNameL(DayInfo u, DayInfo r)
         {
             int i;
 
@@ -105,21 +105,21 @@ namespace Prophecy.Data
         /// <param name="J">本地经度</param>
         /// <param name="ob">日对象</param>
         /// <param name="southernHemisphere">南半球的标志</param>
-        public static void mingLiBaZi(double jd, double J, Day ob, BaZiTypeS baziTypeS)
+        public static void mingLiBaZi(double jd, double J, DayInfo ob, BaZiTypeS baziTypeS)
         {
             int i;
             string c;
             double v;
-            double jd2 = jd + DayJ.deltatT2(jd);      // 力学时
+            double jd2 = jd + DayInfo.deltatT2(jd);      // 力学时
             double w = Ephemeris.S_aLon(jd2 / 36525, -1);  // 此刻太阳视黄经
-            double k = Util.int2((w / Util.pi2 * 360 + 45 + 15 * 360) / 30);   // 1984年立春起算的节气数(不含中气)
+            double k = Math.Floor((w / Util.pi2 * 360 + 45 + 15 * 360) / 30);   // 1984年立春起算的节气数(不含中气)
             jd += Ephemeris.shiCha2(jd2 / 36525) - J / Math.PI / 2;        // 本地真太阳时(使用低精度算法计算时差)
-            ob.bz_zty = DayJ.timeStr(jd);
+            ob.bz_zty = new JDateTime(jd,true).ToString(); // DayJ.timeStr(jd);
 
             jd += 13d / 24d;   // 转为前一日23点起算(原jd为本日中午12点起算)   // C#: 注意数据类型
-            double D = Math.Floor(jd), SC = Util.int2((jd - D) * 12);   // 日数与时辰
+            double D = Math.Floor(jd), SC = Math.Floor((jd - D) * 12);   // 日数与时辰
 
-            v = Util.int2(k / 12 + 6000000); ob.bz_jn = Gan[(int)(v % 10)] + Zhi[(int)(v % 12)];
+            v = Math.Floor(k / 12 + 6000000); ob.bz_jn = Gan[(int)(v % 10)] + Zhi[(int)(v % 12)];
             v = k + 2 + 60000000; ob.bz_jy = Gan[(int)(v % 10)] + Zhi[(int)(v % 12)];
 
             // C#: 新增的代码段, 计算南半球八字(仅纪月不同)
@@ -169,7 +169,7 @@ namespace Prophecy.Data
         public static double qi_accurate(double W)
         {
             double t = Ephemeris.S_aLon_t(W) * 36525;
-            return t - DayJ.deltatT2(t) + 8d / 24d;    // 精气
+            return t - DayInfo.deltatT2(t) + 8d / 24d;    // 精气
         }
 
 
@@ -181,7 +181,7 @@ namespace Prophecy.Data
         public static double so_accurate(double W)
         {
             double t = Ephemeris.MS_aLon_t(W) * 36525;
-            return t - DayJ.deltatT2(t) + 8d / 24d;    // 精朔
+            return t - DayInfo.deltatT2(t) + 8d / 24d;    // 精朔
         }
 
 
@@ -208,17 +208,6 @@ namespace Prophecy.Data
 
 
 
-        /// <summary>
-        /// 命理八字计算(普通计算, 不转换为当地真太阳时), 并保存到日对象 ob 中
-        /// </summary>
-        /// <param name="jd">格林尼治UT(J2000起算)</param>
-        /// <param name="J">本地经度</param>
-        /// <param name="ob">日对象</param>
-        public static void mingLiBaZiNormal(double jd, double J, Day ob)
-        {
-            mingLiBaZiNormal(jd, J, ob, BaZiTypeS.Default);
-        }
-
 
         /// <summary>
         /// 命理八字计算(普通计算, 不转换为当地真太阳时), 并保存到日对象 ob 中
@@ -227,26 +216,26 @@ namespace Prophecy.Data
         /// <param name="J">本地经度</param>
         /// <param name="ob">日对象</param>
         /// <param name="southernHemisphere">南半球的标志</param>
-        public static void mingLiBaZiNormal(double jd, double J, Day ob, BaZiTypeS baziTypeS)
+        public static void mingLiBaZiNormal(double jd, double J, DayInfo ob, BaZiTypeS baziTypeS = BaZiTypeS.Default)
         {
             int i;
             string c;
             double v;
-            double jd2 = jd + DayJ.deltatT2(jd);      // 力学时
+            double jd2 = jd + DayInfo.deltatT2(jd);      // 力学时
             double w = Ephemeris.S_aLon(jd2 / 36525, -1);  // 此刻太阳视黄经
-            double k = Util.int2((w / Util.pi2 * 360 + 45 + 15 * 360) / 30);   // 1984年立春起算的节气数(不含中气)
+            double k = Math.Floor((w / Util.pi2 * 360 + 45 + 15 * 360) / 30);   // 1984年立春起算的节气数(不含中气)
 
             //----------------------------------------------------------------------------------------------
             // C#: 注: 仅有下列代码段与 mingLiBaZi 方法中的代码不同, 其余部分都是相同的
             //----------------------------------------------------------------------------------------------
             jd += 0 - J / Math.PI / 2;     // 将格林尼治UT(J2000起算), 转换为本地时间, 不必考虑真太阳与平太阳时之间的时差
             ob.bz_zty = "";                // 真太阳时置空串
-            ob.bz_pty = DayJ.timeStr(jd);    // 计算平太阳时
+            ob.bz_pty = new JDateTime(jd, true).ToString();    // 计算平太阳时
 
             jd += 13d / 24d;   // 转为前一日23点起算(原jd为本日中午12点起算)   // C#: 注意数据类型
-            double D = Math.Floor(jd), SC = Util.int2((jd - D) * 12);   // 日数与时辰
+            double D = Math.Floor(jd), SC = Math.Floor((jd - D) * 12);   // 日数与时辰
 
-            v = Util.int2(k / 12 + 6000000); ob.bz_jn = Gan[(int)(v % 10)] + Zhi[(int)(v % 12)];
+            v = Math.Floor(k / 12 + 6000000); ob.bz_jn = Gan[(int)(v % 10)] + Zhi[(int)(v % 12)];
             v = k + 2 + 60000000; ob.bz_jy = Gan[(int)(v % 10)] + Zhi[(int)(v % 12)];
 
             // C#: 新增的代码段, 计算南半球八字(仅纪月不同)
@@ -292,10 +281,10 @@ namespace Prophecy.Data
         /// 从 Xml 对象中读取农历节日的定义
         /// </summary>
         /// <returns></returns>
-        private static List<Day> getLunarFeasts()
+        private static List<DayInfo> getLunarFeasts()
         {
             const string xPath = "SharpSxwnl/SxwnlData/Data[@Id = 'obb_getDayName']";
-            List<Day> result = new List<Day>();
+            List<DayInfo> result = new List<DayInfo>();
 
             if (Util.SxwnlXmlData != null)
             {
@@ -305,7 +294,7 @@ namespace Prophecy.Data
                     for (int i = 0; i < foundNodeList.Count; i++)
                         for (int j = 0; j < foundNodeList[i].ChildNodes.Count; j++)
                         {
-                            result.Add(new Day());    // 添加日对象来记录节点信息
+                            result.Add(new DayInfo());    // 添加日对象来记录节点信息
                             XmlAttributeCollection xmlAttr = foundNodeList[i].ChildNodes[j].Attributes;
                             result[result.Count - 1].Lmc = xmlAttr.GetNamedItem("Day").InnerText;
                             result[result.Count - 1].A = xmlAttr.GetNamedItem("A").InnerText;

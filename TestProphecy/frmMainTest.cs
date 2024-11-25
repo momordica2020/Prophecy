@@ -11,15 +11,17 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Prophecy.Data;
+using Microsoft.VisualBasic;
 
 namespace TestSharpSxwnl
 {
     public partial class frmMainTest : Form
     {
         Lunar lun = new Lunar();
-        double curJD, curTZ;
+        double curJD2000, curTZ;
         SunMoon smc;// = new SunMoon();
         string TempPath = "";
+        JDateTime nowTZ;
 
         public frmMainTest()
         {
@@ -35,25 +37,29 @@ namespace TestSharpSxwnl
         /// <param name="e"></param>
         private void frmMainTest_Load(object sender, EventArgs e)
         {
-            this.TempPath = this.AddBS(Environment.GetEnvironmentVariable("Temp"));
+            this.TempPath = Environment.GetEnvironmentVariable("Temp");
+            if (!TempPath.EndsWith('\\') && !TempPath.EndsWith('/')) TempPath += "\\";
+
             this.cmbBaziTypeS.SelectedIndex = 0;
 
             DateTime nowDT = DateTime.Now;
+            
 
             this.curTZ = TimeZoneInfo.Local.GetUtcOffset(nowDT).TotalHours;     // 中国: 东 8 区
-            this.curJD = Util.NowUTCmsSince19700101(nowDT) / 86400000d - 10957.5 - this.curTZ / 24d; //J2000起算的儒略日数(当前本地时间)
-            DayJ.setFromJDay(this.curJD + Util.J2000);
+            this.curJD2000 = Util.NowUTCmsSince19700101(nowDT) / 86400000d - 10957.5 - this.curTZ / 24d; //J2000起算的儒略日数(当前本地时间)
 
-            this.Caly_y.Text = DayJ.Y.ToString();
+            nowTZ = new JDateTime((double)(this.curJD2000 + Util.J2000));
 
-            this.Cml_y.Text = DayJ.Y.ToString();//公历年
-            this.Cml_m.Text = DayJ.M.ToString();//公历月
-            this.Cml_d.Text = DayJ.D.ToString();//公历日
-            this.Cml_his.Text = DayJ.h + ":" + DayJ.m + ":" + DayJ.s.ToString("F0").PadLeft(2, '0');//时分秒 16:25:35
+            this.Caly_y.Text = nowTZ.Year.ToString();
 
-            this.Cal_y.Text = DayJ.Y.ToString();
-            this.Cal_m.Text = DayJ.M.ToString();
-            this.curJD = Util.int2(this.curJD + 0.5);
+            this.Cml_y.Text = nowTZ.Year.ToString();//公历年
+            this.Cml_m.Text = nowTZ.Month.ToString();//公历月
+            this.Cml_d.Text = nowTZ.Day.ToString();//公历日
+            this.Cml_his.Text = nowTZ.ToString("HH:mm:ss");// nowTZ.Hour + ":" + DayJ.m + ":" + DayJ.s.ToString("F0").PadLeft(2, '0');//时分秒 16:25:35
+
+            this.Cal_y.Text = nowTZ.Year.ToString();
+            this.Cal_m.Text = nowTZ.Month.ToString();
+            this.curJD2000 = Math.Floor(this.curJD2000 + 0.5);
 
             this.InitComboBoxes();
 
@@ -78,7 +84,7 @@ namespace TestSharpSxwnl
             //// C#: 注: 使用上句也可以, 如果在调用泛型方法时, 不指定类型, C# 编译器将自动推断其类型
             double By = Util.year2Ayear(this.Cal_y.Text);    // 自动推断类型为: string 
             double Bm = int.Parse(this.Cal_m.Text);
-            lun.yueLiHTML((int)By, (int)Bm, this.curJD);
+            lun.yueLiHTML((int)By, (int)Bm, this.curJD2000);
             this.txtPg0_Text.Text = lun.pg0_text;
             this.txtPg1_Text.Text = lun.pg1_text;
             this.txtPg2_Text.Text = lun.pg2_text;
@@ -121,11 +127,7 @@ namespace TestSharpSxwnl
 
 
         #region 工具函数
-        public string AddBS(string cPath)
-        {
-            if (cPath.Trim().EndsWith("\\")) { return cPath.Trim(); }
-            else { return cPath.Trim() + "\\"; }
-        }
+
 
 
         public void StrToFile(string cExpression, string cFileName)
@@ -159,7 +161,7 @@ namespace TestSharpSxwnl
         {
             this.ML_calc(BaZiType.TrueLocalSolar);
         }
-        
+
         private void btnBaZiNormal_Click(object sender, EventArgs e)
         {
             this.ML_calc(BaZiType.PingLocalSolar);
@@ -172,7 +174,7 @@ namespace TestSharpSxwnl
 
         private void ML_calc(BaZiType type)
         {
-            Prophecy.Day ob = new Prophecy.Day();
+            DayInfo ob = new DayInfo();
             this.txtBazi.Text = Util.ML_calc<string>(ob, type, this.curTZ, this.Cml_y.Text, this.Cml_m.Text,
                                                             this.Cml_d.Text, this.Cml_his.Text, this.txtLongitude.Text,
                                                             (BaZiTypeS)this.cmbBaziTypeS.SelectedIndex);
@@ -195,7 +197,7 @@ namespace TestSharpSxwnl
         private void Sel_zhou_SelectedIndexChanged(object sender, EventArgs e)
         {
             this.Sel_dq.Items.Clear();
-            for (int i = 1; i < JWdata.SQv[this.Sel_zhou.SelectedIndex].Count; i+=2)
+            for (int i = 1; i < JWdata.SQv[this.Sel_zhou.SelectedIndex].Count; i += 2)
                 this.Sel_dq.Items.Add(JWdata.SQv[this.Sel_zhou.SelectedIndex][i]);
             this.Sel_dq.SelectedIndex = 0;
         }
@@ -222,7 +224,7 @@ namespace TestSharpSxwnl
             this.Sel_Region.Tag = JWdata.JWv[this.Sel_Province.SelectedIndex][this.Sel_Region.SelectedIndex + 1].Substring(0, 4);
             JWdata.JWdecode((string)this.Sel_Region.Tag);
             string strJ = Util.rad2str2(JWdata.J);
-            this.Cal_zdzb.Text = "经度(向西为正) " + strJ + 
+            this.Cal_zdzb.Text = "经度(向西为正) " + strJ +
                                  " 纬度 " + Util.rad2str2(JWdata.W);
             this.txtLongitude.Text = strJ;
             this.showMessD(-2);
@@ -236,11 +238,11 @@ namespace TestSharpSxwnl
             SZJ.calcRTS(jd, 1, vJ, vW, tz); //升降计算,使用北时时间,tz=-8指东8区,jd+tz应在当地正午左右(误差数小时不要紧)
             string s;
             LunarInfoListT<double> ob = SZJ.rts[0];
-            DayJ.setFromJDay(jd + Util.J2000);
+            //DayJ.setFromJDay(jd + Util.J2000);
             s = "日出 " + ob.s + " 日落 " + ob.j + " 中天 " + ob.z + "\r\n"
-                        + "月出 " + ob.Ms + " 月落 " + ob.Mj + " 月中 " + ob.Mz + "\r\n"
-                        + "晨起天亮 " + ob.c + " 晚上天黑 " + ob.h + "\r\n"
-                        + "日照时间 " + ob.sj + " 白天时间 " + ob.ch + "\r\n";
+              + "月出 " + ob.Ms + " 月落 " + ob.Mj + " 月中 " + ob.Mz + "\r\n"
+              + "晨起天亮 " + ob.c + " 晚上天黑 " + ob.h + "\r\n"
+              + "日照时间 " + ob.sj + " 白天时间 " + ob.ch + "\r\n";
             return s;
         }
         #endregion
@@ -259,18 +261,17 @@ namespace TestSharpSxwnl
                 this.Cal_pan.Text = "";
                 this.Cal5.Tag = this.Cal5.Text;
             }
-            if (n == -2) 
-                this.Cal5.Text = this.RTS1(this.curJD, vJ, vW, this.curTZ);    // 计算并显示当前日期的日月升降信息
+            if (n == -2) this.Cal5.Text = this.RTS1(this.curJD2000, vJ, vW, this.curTZ);    // 计算并显示当前日期的日月升降信息
             if (n < 0) return;
             //显示n指定的日期信息
-            Prophecy.Day ob = this.lun.lun[n];
+            DayInfo ob = this.lun.lun[n];
             string thisDaySunMoonInfo = this.RTS1(ob.d0, vJ, vW, this.curTZ);    // 计算并显示指定日期的日月升降信息
 
             StringBuilder sb = new StringBuilder();
             if (true)
             { //鼠标移过日期上方
                 sb.AppendLine(Util.Ayear2year(ob.y) + "年" + ob.m + "月" + ob.d + "日");//公历日期
-                sb.AppendLine(ob.Lyear3 + "年 星期" + DayJ.Weeks[(int)(ob.week)] + " " + ob.XiZ);// 丁酉年 星期日 狮子座
+                sb.AppendLine(ob.Lyear3 + "年 星期" + LunarData.Weeks[(int)(ob.week)] + " " + ob.XiZ);// 丁酉年 星期日 狮子座
                 sb.AppendLine(ob.Lyear4 + "年 " + ob.Lleap + ob.Lmc + "月" + (ob.Ldn > 29 ? "大 " : "小 ") + ob.Ldc + "日");// 4715年 润六月大 初八日
                 sb.AppendLine(ob.Lyear2 + "年 " + ob.Lmonth2 + "月 " + ob.Lday2 + "日");// 丁酉年 丁未月 戊午日
                 sb.AppendLine("回历[" + ob.Hyear + "年" + ob.Hmonth + "月" + ob.Hday + "日]");//回历[1438年11月6日]
@@ -300,15 +301,15 @@ namespace TestSharpSxwnl
         {
             if (this.Cal_pause.Checked)
                 return;
-//this.timerTick.Enabled = false;   // C#: Debug
-//this.Cal_pause.Checked = true;   // C#: Debug
+            //this.timerTick.Enabled = false;   // C#: Debug
+            //this.Cal_pause.Checked = true;   // C#: Debug
 
             DateTime nowDT = DateTime.Now;
 
             // 显示太阳月亮坐标
             double jd = Util.NowUTCmsSince19700101(nowDT) / 86400000d - 10957.5; //J2000起算的儒略日数
-//jd = 3391.31877640;   // C#: Debug
-            jd += DayJ.deltatT2(jd);
+                                                                                 //jd = 3391.31877640;   // C#: Debug
+            jd += DayInfo.deltatT2(jd);
             this.smc = new SunMoon(jd, JWdata.J, JWdata.W, 0); //传入力学时间(J2000.0起算)
             this.Cal_zb.Text = smc.toText(1);
 
@@ -321,21 +322,21 @@ namespace TestSharpSxwnl
             jd = Util.NowUTCmsSince19700101(nowDT) / 86400000d - 10957.5 + h / 24;
             if (v.Length > 0)
             {
-                double y1 = DayJ.Y, y2 = y1; //该时所在年份
+                double y1 = nowTZ.Year, y2 = y1; //该时所在年份
                 double m1 = double.Parse(v.Substring(0, 2)), m2 = double.Parse(v.Substring(5, 2));
                 if (m2 < m1) y2++;
                 //nnweek(y,m,n,w)求y年m月第n个星期w的jd
-                double J1 = DayJ.nnweek(y1, m1, double.Parse(v.Substring(2, 1)), double.Parse(v.Substring(3, 1))) - 0.5 - Util.J2000 + (v[4] - 97) / 24d;
-                double J2 = DayJ.nnweek(y2, m2, double.Parse(v.Substring(7, 1)), double.Parse(v.Substring(8, 1))) - 0.5 - Util.J2000 + (v[9] - 97) / 24d;
+                double J1 = DayInfo.GetJDFromYMNW(y1, m1, double.Parse(v.Substring(2, 1)), double.Parse(v.Substring(3, 1))) - 0.5 - Util.J2000 + (v[4] - 97) / 24d;
+                double J2 = DayInfo.GetJDFromYMNW(y2, m2, double.Parse(v.Substring(7, 1)), double.Parse(v.Substring(8, 1))) - 0.5 - Util.J2000 + (v[9] - 97) / 24d;
                 if (jd >= J1 && jd < J2) { jd += 1 / 24d; rg = "¤"; }  //夏令时
             }
-            DayJ.setFromJDay(jd + Util.J2000);
-            this.lblSQClock.Text = DayJ.D + "日 " + DayJ.h + ":" + DayJ.m + ":" + Util.int2(DayJ.s) + rg; //与了与clock1同步,秒数取整而不四舍五入
+            var dd = new JDateTime(jd + Util.J2000);
+            this.lblSQClock.Text =  dd.ToString("dd日 hh:mm:ss") + rg; //与了与clock1同步,秒数取整而不四舍五入
 
         }
         #endregion
 
-        
+
         #region 年历生成
 
         private void btnMakeCaly_Click(object sender, EventArgs e)
@@ -386,22 +387,22 @@ namespace TestSharpSxwnl
             //sb.Append("$");
             //MessageBox.Show((sb[0] == '$').ToString());   // 显示 True
 
-//            string numberPattern = @"(((￥|\$)?)((\+|\-)?)([0-9]*)((\.)?)([0-9]*)((E|e)?)((\+|\-)?)([0-9]*))((%)?)";
-//            // string numberPattern = @"(((￥|\$)?)((\+|\-)?)([0-9]*)((\.)?)([0-9]*)((\%)?))";
-//            Regex numberRegPattern = new Regex(numberPattern);
-////            MatchCollection matched = numberRegPattern.Matches("$- 123.4e+2.3");
-//            MatchCollection matched = numberRegPattern.Matches(@"456$-123e1%.2");
-//            StringBuilder sb = new StringBuilder();
-//            for (int i = 0; i < matched.Count; i++)
-//                sb.AppendLine(matched[i].ToString());
-//            MessageBox.Show(sb.ToString());
-//            if (matched.Count > 0)
-//            {
-//                string numberStr = matched[0].ToString();
-//                if (numberStr.StartsWith("￥") || numberStr.StartsWith("$"))
-//                    numberStr = numberStr.Substring(1);
-//                MessageBox.Show(double.Parse(numberStr, NumberStyles.Any).ToString());
-//            }
+            //            string numberPattern = @"(((￥|\$)?)((\+|\-)?)([0-9]*)((\.)?)([0-9]*)((E|e)?)((\+|\-)?)([0-9]*))((%)?)";
+            //            // string numberPattern = @"(((￥|\$)?)((\+|\-)?)([0-9]*)((\.)?)([0-9]*)((\%)?))";
+            //            Regex numberRegPattern = new Regex(numberPattern);
+            ////            MatchCollection matched = numberRegPattern.Matches("$- 123.4e+2.3");
+            //            MatchCollection matched = numberRegPattern.Matches(@"456$-123e1%.2");
+            //            StringBuilder sb = new StringBuilder();
+            //            for (int i = 0; i < matched.Count; i++)
+            //                sb.AppendLine(matched[i].ToString());
+            //            MessageBox.Show(sb.ToString());
+            //            if (matched.Count > 0)
+            //            {
+            //                string numberStr = matched[0].ToString();
+            //                if (numberStr.StartsWith("￥") || numberStr.StartsWith("$"))
+            //                    numberStr = numberStr.Substring(1);
+            //                MessageBox.Show(double.Parse(numberStr, NumberStyles.Any).ToString());
+            //            }
 
             //MessageBox.Show(double.Parse("2e1").ToString());
 
@@ -609,13 +610,13 @@ namespace TestSharpSxwnl
                 char[] totrim = new char[] { ' ', '\r', '\n' };
                 if (foundNode != null)
                 {
-                    sb.AppendLine((i+1).ToString() + "月: " + foundNode.InnerText);
+                    sb.AppendLine((i + 1).ToString() + "月: " + foundNode.InnerText);
                     sb.AppendLine();
                 }
 
                 else
                 {
-                    MessageBox.Show("加载 " + (i+1).ToString() + " 月的数据失败!");
+                    MessageBox.Show("加载 " + (i + 1).ToString() + " 月的数据失败!");
                     break;
                 }
             }
@@ -698,13 +699,13 @@ namespace TestSharpSxwnl
         private static string myTest2 { get; set; }     // 字符串: 初始为 null
         private double[] myTest3 { get; set; }          // 数组: 
 
-        private double[] testdata = new double[] {4,5,6};
+        private double[] testdata = new double[] { 4, 5, 6 };
         private double[] myTest4
         {
             get { return this.testdata; }
             set { this.testdata = value; }
         }
-        private double[][] testdata2 = new double[][] { new double[] {1,2,3}, new double[] {4,5}};
+        private double[][] testdata2 = new double[][] { new double[] { 1, 2, 3 }, new double[] { 4, 5 } };
         private double[][] myTest5
         {
             get { return this.testdata2; }
@@ -781,7 +782,7 @@ namespace TestSharpSxwnl
             //List<string> myList = new List<string>();
             //myList.AddRange(es);
             //MessageBox.Show(myList.Count.ToString());    // 显示: 0
-            
+
         }
         double[][][] myA3;
 
@@ -798,24 +799,20 @@ namespace TestSharpSxwnl
         #region 测试方法: 计算指定日期的节气信息
         private void btnTestNewMethod_Click(object sender, EventArgs e)
         {
-            Prophecy.Day ob = new Prophecy.Day();
+            DayInfo ob = new DayInfo();
             ob.y = int.Parse(this.Cml_y.Text);    //DateTime.Now.Year;
             ob.m = int.Parse(this.Cml_m.Text);       //DateTime.Now.Month;
             ob.d = int.Parse(this.Cml_d.Text);       //DateTime.Now.Day;
 
             计算节气的类型 calcType;
-            if (this.chkCalcJie.Checked && this.chkCalcQi.Checked)
-                calcType = 计算节气的类型.计算节和气;
-            else
-                if (this.chkCalcQi.Checked)
-                    calcType = 计算节气的类型.仅计算气;
-                else
-                    calcType = 计算节气的类型.仅计算节;
+            if (this.chkCalcJie.Checked && this.chkCalcQi.Checked) calcType = 计算节气的类型.计算节和气;
+            else if (this.chkCalcQi.Checked) calcType = 计算节气的类型.仅计算气;
+            else calcType = 计算节气的类型.仅计算节;
             this.lun.CalcJieQiInfo(ob, calcType);
 
             StringBuilder sb = new StringBuilder();
             SolarTerm jieqiInfo;
-            for(int i = 0 ;i<3;i++)
+            for (int i = 0; i < 3; i++)
             {
                 switch (i)
                 {
@@ -836,7 +833,7 @@ namespace TestSharpSxwnl
                 sb.AppendLine("月建名称: " + jieqiInfo.YueJian);
                 sb.AppendLine("节或气  : " + (jieqiInfo.IsJie ? "节" : "气"));
                 sb.AppendLine("交节时间: " + jieqiInfo.Time);
-                sb.AppendLine("实历交节: " + jieqiInfo.HistoricalTime.Substring(0, 11));
+                sb.AppendLine("实历交节: " + jieqiInfo.HistoricalTime.ToString());
                 sb.AppendLine("交节差异: " + (jieqiInfo.DifferentTime ? jieqiInfo.DayDifference + " 天" : "无"));
                 sb.AppendLine();
             }
@@ -902,6 +899,17 @@ namespace TestSharpSxwnl
 
 
         #endregion 辅助测试
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string input = textBox2.Text;
+            string output = "";
+
+            var c = new Day();
+
+
+            textBox1.AppendText(output + Environment.NewLine);
+        }
     }
 }
 

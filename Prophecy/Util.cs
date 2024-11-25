@@ -134,7 +134,7 @@ namespace Prophecy
         {
             string gn = "";
             if (v < 0) { v = -v; gn = "-"; }
-            double f = Util.int2(v / 60), m = v - f * 60;
+            double f = Math.Floor(v / 60), m = v - f * 60;
             if (fs != 0) 
                 return gn + f + "分" + m.ToString("F" + fx) + "秒";
             else  
@@ -187,34 +187,6 @@ namespace Prophecy
             return c * b;
         }
 
-
-
-        /// <summary>
-        /// 取整数部分
-        /// </summary>
-        /// <param name="v">要取整数部分的数值</param>
-        /// <returns></returns>
-        public static double int2(double v)
-        {
-            return Math.Floor(v);
-        }
-
-
-
-
-
-
-
-        /// <summary>
-        /// 去除字符串前后的所有空白字符
-        /// </summary>
-        /// <param name="s"></param>
-        /// <returns></returns>
-        public static string trim(string s)
-        {
-            Regex regexToTrim = new Regex(@"(^\s*)|(\s*$)", RegexOptions.ECMAScript);    // C#: 匹配任何空白字符, 与 [ \f\n\r\t\v] 等效
-            return regexToTrim.Replace(s, "");
-        }
 
 
 
@@ -331,7 +303,7 @@ namespace Prophecy
         /// <param name="time">时间串</param>
         /// <param name="longitudeStr">经度(度分秒格式)</param>
         /// <returns>八字字符串</returns>
-        public static string ML_calc<T>(Day ob, BaZiType type, double curTZ, T year, T month, T day, string time, string longitudeStr, BaZiTypeS baziTypes)
+        public static string ML_calc<T>(DayInfo ob, BaZiType type, double curTZ, T year, T month, T day, string time, string longitudeStr, BaZiTypeS baziTypes)
         {
             double y = Util.year2Ayear(year);
             if (y == -10000)
@@ -348,8 +320,7 @@ namespace Prophecy
             else
                 longitude = Util.str2rad(longitudeStr);    // 解析经度为弧度
 
-            double jd = DayJ.JD__(y, Util.VAL(month.ToString()), 
-                                Util.VAL(day.ToString()) + t / 24);
+            double jd = new JDateTime((int)y, int.Parse(month.ToString()),  (int)(int.Parse(day.ToString()) + t / 24)).ToJulianDate();
 
             if (type == BaZiType.TrueLocalSolar)
             {
@@ -363,13 +334,9 @@ namespace Prophecy
             }
 
             // C#: 新增的代码段
-            DayJ.setFromJDay(jd);
-            double yearAjusted = DayJ.Y;
-            double monthAjusted = DayJ.M;
-            double dayAjusted = DayJ.D;
-
-            return "[日标]：" + "公历 " + yearAjusted + "-" + monthAjusted + "-" + dayAjusted + " 儒略日数 " + Util.int2(jd + 0.5) + 
-                                " 距2000年首" + Util.int2(jd + 0.5 - Util.J2000) + "日"
+            var ddd = new JDateTime(jd);
+            return "[日标]：" + "公历 " + ddd.Year + "-" + ddd.Month + "-" + ddd.Day + " 儒略日数 " + Math.Floor(jd + 0.5) + 
+                                " 距2000年首" + Math.Floor(jd + 0.5 - Util.J2000) + "日"
                    + "\r\n[八字]：" + ob.bz_jn + "年 " + ob.bz_jy + "月 " + ob.bz_jr + "日 " + ob.bz_js + "时 " + timeName
                    + "\r\n[纪时]：" + ob.bz_JS
                    + "\r\n[时标]：" + "23　 01　 03　 05　 07　 09　 11　 13　 15　 17　 19　 21　 23";
@@ -437,14 +404,11 @@ namespace Prophecy
         /// 返回指定时间(缺省则为现在时刻)的 UTC 时间, 从 1970-1-1午夜开始所经过的毫秒数
         /// </summary>
         /// <returns></returns>
-        public static double NowUTCmsSince19700101()
+        public static double NowUTCmsSince19700101(DateTime? nowDT = null)
         {
-            return NowUTCmsSince19700101(DateTime.Now);
-        }
-        public static double NowUTCmsSince19700101(DateTime nowDT)
-        {
+            if(nowDT == null) nowDT = DateTime.Now;
             DateTime DT19700101 = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            DateTimeOffset nowDTO = new DateTimeOffset(nowDT);
+            DateTimeOffset nowDTO = new DateTimeOffset((DateTime)nowDT);
             return (nowDTO.UtcDateTime - DT19700101).TotalMilliseconds;
         }
 

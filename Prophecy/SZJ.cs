@@ -82,7 +82,7 @@ namespace Prophecy
         /// <returns></returns>
         public static LunarInfoListT<double> Mt(double jd)
         {
-            SZJ.dt = DayJ.deltatT2(jd);
+            SZJ.dt = DayInfo.deltatT2(jd);
             SZJ.E = Coordinate.ObliquityOfEcliptic(jd / 36525);
             jd -= Util.mod2(0.1726222 + 0.966136808032357 * jd - 0.0366 * SZJ.dt - SZJ.L / Util.pi2, 1); //查找最靠近当日中午的月上中天,mod2的第1参数为本地时角近似值
 
@@ -125,7 +125,7 @@ namespace Prophecy
         /// <returns></returns>
         public static LunarInfoListT<double> St(double jd)
         {
-            SZJ.dt = DayJ.deltatT2(jd);
+            SZJ.dt = DayInfo.deltatT2(jd);
             SZJ.E = Coordinate.ObliquityOfEcliptic(jd / 36525);
             jd -= Util.mod2(jd - SZJ.L / Util.pi2, 1); //查找最靠近当日中午的日上中天,mod2的第1参数为本地时角近似值
 
@@ -182,18 +182,18 @@ namespace Prophecy
                 { 
                     //太阳
                     r = SZJ.St(jd + i + sq);
-                    ((SZJ.rts[i])).s = DayJ.timeStr(r.s__ - sq);    //升
-                    ((SZJ.rts[i])).z = DayJ.timeStr(r.z__ - sq);    //中
-                    ((SZJ.rts[i])).j = DayJ.timeStr(r.j__ - sq);    //降
-                    ((SZJ.rts[i])).c = DayJ.timeStr(r.c__ - sq);    //晨
-                    ((SZJ.rts[i])).h = DayJ.timeStr(r.h__ - sq);    //昏
-                    ((SZJ.rts[i])).ch = DayJ.timeStr(r.h__ - r.c__ - 0.5);   //光照时间,timeStr()内部+0.5,所以这里补上-0.5
-                    ((SZJ.rts[i])).sj = DayJ.timeStr(r.j__ - r.s__ - 0.5);   //昼长
+                    ((SZJ.rts[i])).s = new JDateTime(r.s__ - sq).ToString();    //升
+                    ((SZJ.rts[i])).z = new JDateTime(r.z__ - sq).ToString();    //中
+                    ((SZJ.rts[i])).j = new JDateTime(r.j__ - sq).ToString();    //降
+                    ((SZJ.rts[i])).c = new JDateTime(r.c__ - sq).ToString();    //晨
+                    ((SZJ.rts[i])).h = new JDateTime(r.h__ - sq).ToString();    //昏
+                    ((SZJ.rts[i])).ch = new JDateTime(r.h__ - r.c__ - 0.5).ToString();   //光照时间,timeStr()内部+0.5,所以这里补上-0.5
+                    ((SZJ.rts[i])).sj = new JDateTime(r.j__ - r.s__ - 0.5).ToString();   //昼长
                 }
                 r = SZJ.Mt(jd + i + sq);     //月亮
-                c = Util.int2(r.s__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Ms = DayJ.timeStr(r.s__ - sq);
-                c = Util.int2(r.z__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Mz = DayJ.timeStr(r.z__ - sq);
-                c = Util.int2(r.j__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Mj = DayJ.timeStr(r.j__ - sq);
+                c = Math.Floor(r.s__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Ms = new JDateTime(r.s__ - sq).ToString();
+                c = Math.Floor(r.z__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Mz = new JDateTime(r.z__ - sq).ToString();
+                c = Math.Floor(r.j__ - sq + 0.5) - jd; if (c >= 0 && c < n) (SZJ.rts[(int)c]).Mj = new JDateTime(r.j__ - sq).ToString();
             }
             SZJ.rts.dn = n;
         }

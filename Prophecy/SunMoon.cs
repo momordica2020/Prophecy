@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Prophecy.Data;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Forms;
 
 namespace Prophecy
 {
@@ -283,7 +285,7 @@ namespace Prophecy
             //基本参数计算
             this.T = T; 
             this.L = L; this.fa = fa;
-            this.dt = DayJ.deltatT2(T); //TD-UT
+            this.dt = DayInfo.deltatT2(T); //TD-UT
             this.jd = T - this.dt;    //UT
             T /= 36525; Coordinate.nutation(T);
             this.dL = Coordinate.dL;   //黄经章
@@ -394,7 +396,7 @@ namespace Prophecy
             sb.Append("<table width='100%' cellspacing=1 cellpadding=0 bgcolor='#FFC0C0'>");
 
             sb.Append("<tr><td bgcolor=white align=center>");
-            sb.Append("平太阳 " + DayJ.timeStr(this.pty) + " 真太阳 <font color=red>" + DayJ.timeStr(this.zty) + "</font><br>");
+            sb.Append("平太阳 " + new JDateTime(this.pty).ToString() + " 真太阳 <font color=red>" + new JDateTime(this.zty).ToString() + "</font><br>");
             sb.Append("时差 " + Util.m2fm(this.sc * 86400, 2, 1) + " 月亮被照亮 " + (this.mIll * 100).ToString("F2") + "% ");
             sb.Append("</td></tr>");
 
@@ -416,11 +418,11 @@ namespace Prophecy
             if (fs != 0)
             {
                 sb.Append("<tr><td bgcolor=white align=center>");
-                sb.Append("力学时 " + DayJ.setFromJDay_str(this.T + Util.J2000));
+                sb.Append("力学时 " + new JDateTime(this.T + Util.J2000));
                 sb.Append(" ΔT=" + (this.dt * 86400).ToString("F1") + "秒<br>");
                 sb.Append("黄经章 " + (this.dL / Util.pi2 * 360 * 3600).ToString("F2") + "\" ");
                 sb.Append("交角章 " + (this.dE / Util.pi2 * 360 * 3600).ToString("F2") + "\" ");
-                sb.Append("ε=" + Util.trim(Util.rad2str(this.E, 0)));
+                sb.Append("ε=" + Util.rad2str(this.E, 0).Trim());
                 sb.Append("</td></tr>");
             }
             sb.Append("</table>");
@@ -437,7 +439,7 @@ namespace Prophecy
         public string toText(double fs)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append("平太阳 " + DayJ.timeStr(this.pty) + " 真太阳 " + DayJ.timeStr(this.zty) + "\r\n");
+            sb.Append("平太阳 " + new JDateTime(this.pty,true) + " 真太阳 " + new JDateTime(this.zty, true) + "\r\n");
             sb.Append("时差 " + Util.m2fm(this.sc * 86400, 2, 1) + " 月亮被照亮 " + (this.mIll * 100).ToString("F2") + "% ");
             sb.Append("\r\n");
 
@@ -456,11 +458,11 @@ namespace Prophecy
 
             if (fs != 0)
             {
-                sb.Append("\r\n力学时 " + DayJ.setFromJDay_str(this.T + Util.J2000));
+                sb.Append("\r\n力学时 " + new JDateTime(this.T + Util.J2000));
                 sb.Append(" ΔT=" + (this.dt * 86400).ToString("F1") + "秒\r\n");
                 sb.Append("黄经章 " + (this.dL / Util.pi2 * 360 * 3600).ToString("F2") + "\" ");
                 sb.Append("交角章 " + (this.dE / Util.pi2 * 360 * 3600).ToString("F2") + "\" ");
-                sb.Append("\r\nε=" + Util.trim(Util.rad2str(this.E, 0)));
+                sb.Append("\r\nε=" + Util.rad2str(this.E, 0).Trim());
             }
             return sb.ToString();
         }

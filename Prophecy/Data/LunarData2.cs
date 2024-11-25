@@ -18,7 +18,7 @@ namespace Prophecy.Data
         /// </summary>
         /// <param name="u">日对象</param>
         /// <param name="r">日对象</param>
-        public static void getDayNameJ(Day u, Day r)
+        public static void getDayNameJ(DayInfo u, DayInfo r)
         {
             string m0 = (u.m < 10 ? "0" : "") + u.m;
             string d0 = (u.d < 10 ? "0" : "") + u.d;
@@ -81,14 +81,14 @@ namespace Prophecy.Data
         /// </summary>
         /// <param name="d0">2000.0起算儒略日,北京时12:00</param>
         /// <param name="r">日对象</param>
-        public static void getHuiLi(double d0, Day r)
+        public static void getHuiLi(double d0, DayInfo r)
         {
             // 以下算法使用Excel测试得到,测试时主要关心年临界与月临界
             double z, y, m, d;
-            d = d0 + 503105; z = Util.int2((d + 0.1) / 10631);   // 10631为一周期(30年)
-            d -= z * 10631; y = Util.int2((d + 0.5) / 354.366);  // 加0.5的作用是保证闰年正确(一周中的闰年是第2,5,7,10,13,16,18,21,24,26,29年)
-            d -= Util.int2(y * 354.366 + 0.5); m = Util.int2((d + 0.11) / 29.51);   // 分子加0.11,分每加0.01的作用是第354或355天的的月分保持为12月(m=11)
-            d -= Util.int2(m * 29.51 + 0.5);
+            d = d0 + 503105; z = Math.Floor((d + 0.1) / 10631);   // 10631为一周期(30年)
+            d -= z * 10631; y = Math.Floor((d + 0.5) / 354.366);  // 加0.5的作用是保证闰年正确(一周中的闰年是第2,5,7,10,13,16,18,21,24,26,29年)
+            d -= Math.Floor(y * 354.366 + 0.5); m = Math.Floor((d + 0.11) / 29.51);   // 分子加0.11,分每加0.01的作用是第354或355天的的月分保持为12月(m=11)
+            d -= Math.Floor(m * 29.51 + 0.5);
             r.Hyear = z * 30 + y + 1;
             r.Hmonth = m + 1;
             r.Hday = d + 1;

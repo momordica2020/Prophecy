@@ -19,7 +19,7 @@ namespace TestSharpSxwnl
 
         private void label1_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("*" + Util.trim("\t 123 \r") + "*", "返回结果:");
+            //MessageBox.Show("*" + Util.trim("\t 123 \r") + "*", "返回结果:");
         }
 
         private void label2_Click(object sender, EventArgs e)

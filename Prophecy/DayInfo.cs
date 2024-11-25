@@ -7,10 +7,10 @@ namespace Prophecy
     /// <summary>
     /// 日对象
     /// </summary>
-    public class Day
+    public partial class DayInfo
     {
       
-        public Day()
+        public DayInfo()
         {
             this.ST = new SolarTerm();
             this.STlast = new SolarTerm();

@@ -142,9 +142,9 @@ namespace Prophecy
         private static double qi_high(double W)
         {
             double t = Ephemeris.S_aLon_t2(W) * 36525;
-            t = t - DayJ.deltatT2(t) + 8d / 24d;
+            t = t - DayInfo.deltatT2(t) + 8d / 24d;
             double v = ((t + 0.5) % 1) * 86400;
-            if (v < 600 || v > 86400 - 600) t = Ephemeris.S_aLon_t(W) * 36525 - DayJ.deltatT2(t) + 8d / 24d;
+            if (v < 600 || v > 86400 - 600) t = Ephemeris.S_aLon_t(W) * 36525 - DayInfo.deltatT2(t) + 8d / 24d;
             return t;
         }
 
@@ -157,9 +157,9 @@ namespace Prophecy
         private static double so_high(double W)
         {
             double t = Ephemeris.MS_aLon_t2(W) * 36525;
-            t = t - DayJ.deltatT2(t) + 8d / 24d;
+            t = t - DayInfo.deltatT2(t) + 8d / 24d;
             double v = ((t + 0.5) % 1) * 86400;
-            if (v < 600 || v > 86400 - 600) t = Ephemeris.MS_aLon_t(W) * 36525 - DayJ.deltatT2(t) + 8d / 24d;
+            if (v < 600 || v > 86400 - 600) t = Ephemeris.MS_aLon_t(W) * 36525 - DayInfo.deltatT2(t) + 8d / 24d;
             return t;
         }
 
@@ -345,7 +345,7 @@ namespace Prophecy
             double W, w;
 
             // 该年的气
-            W = Util.int2((jd - 355 + 183) / 365.2422) * 365.2422 + 355;  // 355是2000.12冬至,得到较靠近jd的冬至估计值
+            W = Math.Floor((jd - 355 + 183) / 365.2422) * 365.2422 + 355;  // 355是2000.12冬至,得到较靠近jd的冬至估计值
             if (TrueNMST.calc(W, "气") > jd) W -= 365.2422;
             for (i = 0; i < 25; i++) A[i] = TrueNMST.calc(W + 15.2184 * i, "气");     // 25个节气时刻(北京时间),从冬至开始到下一个冬至以后
             A.pe1 = TrueNMST.calc(W - 15.2, "气"); A.pe2 = TrueNMST.calc(W - 30.4, "气");  // 补算二气,确保一年中所有月份的“气”全部被计算在内
@@ -371,7 +371,7 @@ namespace Prophecy
 
 
             // -721年至-104年的后九月及月建问题,与朔有关，与气无关
-            double YY = Util.int2((TrueNMST.ZQ[0] + 10 + 180) / 365.2422) + 2000; // 确定年份
+            double YY = Math.Floor((TrueNMST.ZQ[0] + 10 + 180) / 365.2422) + 2000; // 确定年份
             if (YY >= -721 && YY <= -104)
             {
                 double ly = 0, b0 = 0, k0 = 0, x0 = 0;    // ly为历元(本历首月的儒略数),x0月建,lName闰月名称,b0,k0为置闰拟合参数
@@ -379,12 +379,12 @@ namespace Prophecy
                 if (YY >= -721) { ly = 1457698 - Util.J2000; k0 = 12.368422; b0 = 0.342; lName = "十三"; x0 = 2; }    // 春秋历,ly为-722.12.17
                 if (YY >= -479) { ly = 1546083 - Util.J2000; k0 = 12.368422; b0 = 0.500; lName = "十三"; x0 = 2; }    // 战国历,ly为-480.12.11
                 if (YY >= -220) { ly = 1640641 - Util.J2000; k0 = 12.369000; b0 = 0.866; lName = "后九"; x0 = 11; }   // 秦汉历,ly为-221.10.31;
-                double nY = Util.int2((TrueNMST.HS[0] - ly + 100) / 365.25);    // 年积数
-                double f1 = Util.int2(b0 + nY * k0), f2 = Util.int2(b0 + nY * k0 + k0), f3;    // f1有本年首的月积数,f2为下一年首的月积数
-                f1 = Util.int2(f1); f2 = Util.int2(f2);
+                double nY = Math.Floor((TrueNMST.HS[0] - ly + 100) / 365.25);    // 年积数
+                double f1 = Math.Floor(b0 + nY * k0), f2 = Math.Floor(b0 + nY * k0 + k0), f3;    // f1有本年首的月积数,f2为下一年首的月积数
+                f1 = Math.Floor(f1); f2 = Math.Floor(f2);
                 for (i = 0; i < 14; i++)
                 {
-                    f3 = Util.int2((TrueNMST.HS[i] - ly + 15) / 29.5306);    // 该月积数
+                    f3 = Math.Floor((TrueNMST.HS[i] - ly + 15) / 29.5306);    // 该月积数
                     if (f3 < f2) f3 -= f1; else f3 -= f2;
                     if (f3 < 12) TrueNMST.ym[i] = Data.LunarData.ymc[(int)((f3 + x0) % 12)]; else TrueNMST.ym[i] = lName;
                 }
@@ -423,7 +423,7 @@ namespace Prophecy
 
 
         /// <summary>
-        /// 新增方法: 计算节气, 并返回计算的节气总数, 在调用本方法并读取 SSQ.ZQ 数据后, 应该清零 SSQ.ZQ
+        /// 计算节气, 并返回计算的节气总数, 在调用本方法并读取 SSQ.ZQ 数据后, 应该清零 SSQ.ZQ
         /// </summary>
         /// <param name="jd"></param>
         /// <param name="calcMultiPeriod"></param>
@@ -437,14 +437,14 @@ namespace Prophecy
 
             if (!calcMultiPeriod)    // 只计算某年的节气
             {
-                W = Util.int2((jd - 355 + 183) / 365.2422) * 365.2422 + 355;  // 355是2000.12冬至,得到较靠近jd的冬至估计值
+                W = Math.Floor((jd - 355 + 183) / 365.2422) * 365.2422 + 355;  // 355是2000.12冬至,得到较靠近jd的冬至估计值
                 if (TrueNMST.calc(W, "气") > jd) W -= 365.2422;
                 for (i = 0; i < 25; i++) A[i] = TrueNMST.calc(W + 15.2184 * i, "气");     // 25个节气时刻(北京时间),从冬至开始到下一个冬至以后
                 A.pe1 = TrueNMST.calc(W - 15.2, "气"); A.pe2 = TrueNMST.calc(W - 30.4, "气");  // 补算二气,确保一年中所有月份的“气”全部被计算在内
             }
             else    // 需计算从霜降至下 2 个大寒之后的节气, 用于计算指定日期的所属节气, 上一节气, 下一节气等信息
             {
-                W = Util.int2((jd - 355 + 183) / 365.2422) * 365.2422 + 296;  // 296是2000.10.23霜降(距200.1.1的天数),得到较靠近jd的霜降估计值
+                W = Math.Floor((jd - 355 + 183) / 365.2422) * 365.2422 + 296;  // 296是2000.10.23霜降(距200.1.1的天数),得到较靠近jd的霜降估计值
                 if (TrueNMST.calc(W, "气") > jd) W -= 365.2422;
                 for (i = 0; i < 31; i++) A[i] = TrueNMST.calc(W + 15.2184 * i, "气");     // 31个节气时刻(北京时间),从霜降至开始到下 2 个大寒以后
             }

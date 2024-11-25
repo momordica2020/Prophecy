@@ -387,7 +387,7 @@ namespace Prophecy
             for (i = 0; i < ob.Length; i++)  // C#: 注释循环变量中步长计算的后半语句:   , tn *= t)
             {
                 F = ob[i];
-                N = Util.int2(n * F.Length / ob[0].Length + 0.5); if (i != 0) N += 3; if (N >= F.Length) N = F.Length;
+                N = Math.Floor(n * F.Length / ob[0].Length + 0.5); if (i != 0) N += 3; if (N >= F.Length) N = F.Length;
                 for (j = 0, c = 0; j < N; j += 3) c += F[j] * Math.Cos(F[j + 1] + t * F[j + 2]);
                 // v += c * tn;     // C#: 注释此句并改写如下
                 v += c * tn * Math.Pow(t, i);
@@ -450,7 +450,7 @@ namespace Prophecy
             for (i = 0; i < ob.Length; i++)  // C#: 注释循环变量中步长计算的后半语句:   , tn *= t)
             {
                 F = ob[i];
-                N = Util.int2(n * F.Length / ob[0].Length + 0.5); if (i!=0) N += 6; if (N >= F.Length) N = F.Length;
+                N = Math.Floor(n * F.Length / ob[0].Length + 0.5); if (i!=0) N += 6; if (N >= F.Length) N = F.Length;
                 for (j = 0, c = 0; j < N; j += 6)
                 {
                     // c += F[j] * Math.Cos(F[j + 1] + t * F[j + 2] + t2 * F[j + 3] + t3 * F[j + 4] + t4 * F[j + 5]);  // C#: 原语句, 因可能导致数据精度过低, 故修改如下

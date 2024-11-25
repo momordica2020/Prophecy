@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using Microsoft.VisualBasic;
 using Prophecy.Data;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace Prophecy
 {
@@ -19,7 +23,7 @@ namespace Prophecy
         // 更改为公共属性, 但需要在构造函数中创建对象的实例. 保留初次转换时的语句如下:
         // public LunarInfoListT<OB> lun = new LunarInfoListT<OB>();    // 存储 OB 类的实例
         //--------------------------------------------------------------------------------------
-        public LunarInfoListT<Day> lun { get; set; }    // 存储 OB 类的实例(日对象)
+        public LunarInfoListT<DayInfo> lun { get; set; }    // 存储 OB 类的实例(日对象)
 
         /// <summary>
         /// 本月第一天的星期
@@ -84,10 +88,10 @@ namespace Prophecy
         /// </summary>
         public Lunar()
         {
-            this.lun = new LunarInfoListT<Day>();    // C#: 转换为自动实现的公共属性时添加本句, 创建实例
+            this.lun = new LunarInfoListT<DayInfo>();    // C#: 转换为自动实现的公共属性时添加本句, 创建实例
 
             for (int i = 0; i < 31; i++)
-                this.lun.Add(new Day());
+                this.lun.Add(new DayInfo());
             this.lun.dn = 0;
         }
 
@@ -119,12 +123,16 @@ namespace Prophecy
             int i, j;
             double c, Bd0, Bdn;
 
+
             // 日历物件初始化
-            DayJ.h = 12; DayJ.m = 0; DayJ.s = 0.1;
-            DayJ.Y = By; DayJ.M = Bm; DayJ.D = 1; Bd0 = Util.int2(DayJ.toJDay()) - Util.J2000;  // 公历某年的月首,中午
-            DayJ.M++;
-            if (DayJ.M > 12) { DayJ.Y++; DayJ.M = 1; }     // C#: 如果月份大于 12, 则年数 + 1, 月数取 1
-            Bdn = Util.int2(DayJ.toJDay()) - Util.J2000 - Bd0; // 本月天数(公历)
+            var ddd = new JDateTime(By, Bm, 1, 12, 0, 0);
+            //DayJ.h = 12; DayJ.m = 0; DayJ.s = 0.1;
+            //DayJ.Y = By; DayJ.M = Bm; DayJ.D = 1; 
+            
+            
+            Bd0 = Math.Floor(ddd.ToJulianDate()) - Util.J2000;  // 公历某年的月首,中午
+            ddd.AddMonths(1);// C#: 如果月份大于 12, 则年数 + 1, 月数取 1
+            Bdn = Math.Floor(ddd.ToJulianDate()) - Util.J2000 - Bd0; // 本月天数(公历)
 
             this.w0 = (Bd0 + Util.J2000 + 1) % 7; //本月第一天的星期
             this.y = By;   // 公历年份
@@ -139,7 +147,7 @@ namespace Prophecy
             this.nianhao = Data.LunarData.getNH(By);
 
             double D, w;
-            Day ob, ob2;
+            DayInfo ob, ob2;
 
             // 循环提取各日信息
             for (i = 0, j = 0; i < Bdn; i++)
@@ -152,14 +160,15 @@ namespace Prophecy
                 ob.dn = Bdn;       // 公历月天数
                 ob.week0 = this.w0;     // 月首的星期
                 ob.week = (this.w0 + i) % 7;     // 当前日的星期
-                ob.weeki = Util.int2((this.w0 + i) / 7);    // 本日所在的周序号
-                ob.weekN = Util.int2((this.w0 + Bdn - 1) / 7) + 1;    // 本月的总周数
-                DayJ.setFromJDay(ob.d0 + Util.J2000); ob.d = (int)DayJ.D;   //公历日名称
+                ob.weeki = Math.Floor((this.w0 + i) / 7);    // 本日所在的周序号
+                ob.weekN = Math.Floor((this.w0 + Bdn - 1) / 7) + 1;    // 本月的总周数
+                var dd = new JDateTime(ob.d0 + Util.J2000);
+                ob.d = dd.Day;   //公历日名称
 
                 // 农历月历
                 if (TrueNMST.ZQ.Count == 0 || ob.d0 < TrueNMST.ZQ[0] || ob.d0 >= TrueNMST.ZQ[24])   // 如果d0已在计算农历范围内则不再计算
                     TrueNMST.calcY(ob.d0);
-                int mk = (int)Util.int2((ob.d0 - TrueNMST.HS[0]) / 30); if (mk < 13 && TrueNMST.HS[mk + 1] <= ob.d0) mk++; // 农历所在月的序数
+                int mk = (int)Math.Floor((ob.d0 - TrueNMST.HS[0]) / 30); if (mk < 13 && TrueNMST.HS[mk + 1] <= ob.d0) mk++; // 农历所在月的序数
 
                 ob.Ldi = (int)(ob.d0 - TrueNMST.HS[mk]);   // 距农历月首的编移量,0对应初一
                 ob.Ldc = Data.LunarData.rmc[(int)(ob.Ldi)];      // 农历日名称
@@ -182,7 +191,7 @@ namespace Prophecy
                     ob.Lmc = ob2.Lmc; ob.Ldn = ob2.Ldn;
                     ob.Lleap = ob2.Lleap; ob.Lmc2 = ob2.Lmc2;
                 }
-                int qk = (int)Util.int2((ob.d0 - TrueNMST.ZQ[0] - 7) / 15.2184); if (qk < 23 && ob.d0 >= TrueNMST.ZQ[qk + 1]) qk++; //节气的取值范围是0-23
+                int qk = (int)Math.Floor((ob.d0 - TrueNMST.ZQ[0] - 7) / 15.2184); if (qk < 23 && ob.d0 >= TrueNMST.ZQ[qk + 1]) qk++; //节气的取值范围是0-23
                 if (ob.d0 == TrueNMST.ZQ[qk]) ob.Ljq = Data.LunarData.jqmc[qk];
                 else ob.Ljq = "";
 
@@ -213,10 +222,10 @@ namespace Prophecy
                 ob.Lyear4 = ob.Lyear0 + 1984 + 2698;    // 黄帝纪年
 
                 // 纪月处理,1998年12月7(大雪)开始连续进行节气计数,0为甲子
-                mk = (int)Util.int2((ob.d0 - TrueNMST.ZQ[0]) / 30.43685);
+                mk = (int)Math.Floor((ob.d0 - TrueNMST.ZQ[0]) / 30.43685);
                 if (mk < 12 && ob.d0 >= TrueNMST.ZQ[2 * mk + 1]) mk++;  //相对大雪的月数计算,mk的取值范围0-12
 
-                D = mk + Util.int2((TrueNMST.ZQ[12] + 390) / 365.2422) * 12 + 900000; //相对于1998年12月7(大雪)的月数,900000为正数基数
+                D = mk + Math.Floor((TrueNMST.ZQ[12] + 390) / 365.2422) * 12 + 900000; //相对于1998年12月7(大雪)的月数,900000为正数基数
                 ob.Lmonth = D % 12;
                 ob.Lmonth2 = Data.LunarData.Gan[(int)(D % 10)] + Data.LunarData.Zhi[(int)(D % 12)];
 
@@ -225,7 +234,7 @@ namespace Prophecy
                 ob.Lday2 = Data.LunarData.Gan[(int)(D % 10)] + Data.LunarData.Zhi[(int)(D % 12)];
 
                 // 星座
-                mk = (int)Util.int2((ob.d0 - TrueNMST.ZQ[0] - 15) / 30.43685); if (mk < 11 && ob.d0 >= TrueNMST.ZQ[2 * mk + 2]) mk++; //星座所在月的序数,(如果j=13,ob.d0不会超过第14号中气)
+                mk = (int)Math.Floor((ob.d0 - TrueNMST.ZQ[0] - 15) / 30.43685); if (mk < 11 && ob.d0 >= TrueNMST.ZQ[2 * mk + 2]) mk++; //星座所在月的序数,(如果j=13,ob.d0不会超过第14号中气)
                 ob.XiZ = Data.LunarData.XiZ[(int)((mk + 12) % 12)] + "座";
 
                 // 回历
@@ -238,41 +247,41 @@ namespace Prophecy
             }
 
             // 以下是月相与节气的处理
-            double d, jd2 = Bd0 + DayJ.deltatT2(Bd0) - 8d / 24d;
+            double d, jd2 = Bd0 + DayInfo.deltatT2(Bd0) - 8d / 24d;
             int xn;
 
             // 月相查找
             w = Ephemeris.MS_aLon(jd2 / 36525, 10, 3);
-            w = Util.int2((w - 0.78) / Math.PI * 2) * Math.PI / 2;
+            w = Math.Floor((w - 0.78) / Math.PI * 2) * Math.PI / 2;
             do
             {
                 d = Data.LunarData.so_accurate(w);
-                D = Util.int2(d + 0.5);
-                xn = (int)Util.int2(w / Util.pi2 * 4 + 4000000.01) % 4;
+                D = Math.Floor(d + 0.5);
+                xn = (int)Math.Floor(w / Util.pi2 * 4 + 4000000.01) % 4;
                 w += Util.pi2 / 4;
                 if (D >= Bd0 + Bdn) break;
                 if (D < Bd0) continue;
                 ob = (this.lun[(int)(D - Bd0)]);
                 ob.yxmc = Data.LunarData.yxmc[xn];     // 取得月相名称
                 ob.yxjd = d.ToString();
-                ob.yxsj = DayJ.timeStr(d);
+                ob.yxsj = new JDateTime(d, true).ToString();
             } while (D + 5 < Bd0 + Bdn);
 
             // 节气查找
             w = Ephemeris.S_aLon(jd2 / 36525, 3);
-            w = Util.int2((w - 0.13) / Util.pi2 * 24) * Util.pi2 / 24;
+            w = Math.Floor((w - 0.13) / Util.pi2 * 24) * Util.pi2 / 24;
             do
             {
                 d = Data.LunarData.qi_accurate(w);
-                D = Util.int2(d + 0.5);
-                xn = (int)Util.int2(w / Util.pi2 * 24 + 24000006.01) % 24;
+                D = Math.Floor(d + 0.5);
+                xn = (int)Math.Floor(w / Util.pi2 * 24 + 24000006.01) % 24;
                 w += Util.pi2 / 24;
                 if (D >= Bd0 + Bdn) break;
                 if (D < Bd0) continue;
                 ob = (this.lun[(int)(D - Bd0)]);
                 ob.jqmc = Data.LunarData.jqmc[xn];     // 取得节气名称
                 ob.jqjd = d.ToString();
-                ob.jqsj = DayJ.timeStr(d);
+                ob.jqsj = new JDateTime(d, true).ToString();
             } while (D + 12 < Bd0 + Bdn);
 
             // C#: 转换时新增的代码行
@@ -297,7 +306,7 @@ namespace Prophecy
             string c, c2;
             StringBuilder cr = new StringBuilder();    // C#: 为提高字符串处理效率, 使用 StringBuilder
             string isM;
-            Day ob;     // 日历物件
+            DayInfo ob;     // 日历物件
 
             this.yueLiCalc(By, Bm);    // 农历计算
 
@@ -406,7 +415,7 @@ namespace Prophecy
             string c, c2;
             StringBuilder cr = new StringBuilder();    // C#: 为提高字符串处理效率, 使用 StringBuilder
             string isM;
-            Day ob;     // 日历物件
+            DayInfo ob;     // 日历物件
 
             this.yueLiCalc(By, Bm);    // 农历计算
 
@@ -520,7 +529,7 @@ namespace Prophecy
             string s2;
             double v, qi = 0;
 
-            TrueNMST.calcY(Util.int2((y - 2000) * 365.2422 + 180));
+            TrueNMST.calcY(Math.Floor((y - 2000) * 365.2422 + 180));
 
             for (i = 0; i < 14; i++)
             {
@@ -530,11 +539,11 @@ namespace Prophecy
                 s1.Append(TrueNMST.ym[i]);
                 if (s1.ToString().Length < 3) s1.Append("月");
                 s1.Append(TrueNMST.dx[i] > 29 ? "大" : "小");
-                s1.Append(" " + DayJ.setFromJDay_str(TrueNMST.HS[i] + Util.J2000).Substring(6, 5));    // C#: 取实历初一的时间
+                s1.Append(" " + new JDateTime(TrueNMST.HS[i] + Util.J2000).ToString("MM月dd日"));    // C#: 取实历初一的时间
 
-                v = Data.LunarData.so_accurate2(TrueNMST.HS[i]);
-                s2 = "(" + DayJ.setFromJDay_str(v + Util.J2000).Substring(9, 11) + ")";    // C#: 取每月朔的时间(即初一)
-                if (Util.int2(v + 0.5) != TrueNMST.HS[i]) s2 = "<font color=red>" + s2 + "</font>";
+                v = LunarData.so_accurate2(TrueNMST.HS[i]);
+                s2 = "(" + new JDateTime(v + Util.J2000).ToString("MM月") + ")";    // C#: 取每月朔的时间(即初一)
+                if (Math.Floor(v + 0.5) != TrueNMST.HS[i]) s2 = "<font color=red>" + s2 + "</font>";
                 //v=(v+0.5+LunarHelper.J2000)%1; if(v>0.5) v=1-v; if(v<8/1440) s2 = "<u>"+s2+"</u>"; //对靠近0点的加注
                 s1.Append(s2);
 
@@ -545,11 +554,11 @@ namespace Prophecy
                     if (j == -2) qi = TrueNMST.ZQ.pe2;
 
                     if (qi < TrueNMST.HS[i] || qi >= TrueNMST.HS[i + 1]) continue;
-                    s1.Append(" " + Data.LunarData.jqmc[(j + 24) % 24] + DayJ.setFromJDay_str(qi + Util.J2000).Substring(6, 5));    // C#: 取节气名称和实历交节日期
+                    s1.Append(" " + LunarData.jqmc[(j + 24) % 24] + new JDateTime(qi + Util.J2000).ToString("M月d日"));    // C#: 取节气名称和实历交节日期
 
-                    v = Data.LunarData.qi_accurate2(qi);
-                    s2 = "(" + DayJ.setFromJDay_str(v + Util.J2000).Substring(9, 11) + ")";    // C#: 取节气时间(上年大雪-本年大雪)
-                    if (Util.int2(v + 0.5) != qi) s2 = "<font color=red>" + s2 + "</font>";
+                    v = LunarData.qi_accurate2(qi);
+                    s2 = "(" + new JDateTime(v + Util.J2000).ToString("d日") + ")";    // C#: 取节气时间(上年大雪-本年大雪)
+                    if (Math.Floor(v + 0.5) != qi) s2 = "<font color=red>" + s2 + "</font>";
                     //v=(v+0.5+LunarHelper.J2000)%1; if(v>0.5) v=1-v; if(v<8/1440) s2 = "<u>"+s2+"</u>"; //对靠近0点的加注
                     s1.Append(s2);
                 }
@@ -570,7 +579,7 @@ namespace Prophecy
             StringBuilder s = new StringBuilder();     // C#: 为提高字符串处理效率, 使用 StringBuilder
             StringBuilder s1 = new StringBuilder();    // C#: 为提高字符串处理效率, 使用 StringBuilder
             double v, v2, qi = 0;
-            TrueNMST.calcY(Util.int2((y - 2000) * 365.2422 + 180));
+            TrueNMST.calcY(Math.Floor((y - 2000) * 365.2422 + 180));
             for (i = 0; i < 14; i++)
             {
                 if (TrueNMST.HS[i + 1] > TrueNMST.ZQ[24]) break; //已包含下一年的冬至
@@ -580,8 +589,8 @@ namespace Prophecy
                 if (s1.ToString().Length < 3) s1.Append("月");
                 s1.Append(TrueNMST.dx[i] > 29 ? "大" : "小");
                 v = TrueNMST.HS[i] + Util.J2000;
-                s1.Append(" " + Data.LunarData.Gan[(int)((v + 9) % 10)] + Data.LunarData.Zhi[(int)((v + 1) % 12)]);
-                s1.Append(" " + DayJ.setFromJDay_str(v).Substring(6, 5));
+                s1.Append(" " + LunarData.Gan[(int)((v + 9) % 10)] + LunarData.Zhi[(int)((v + 1) % 12)]);
+                s1.Append(" " + new JDateTime(v).ToString("M月d日"));
 
                 for (j = -2; j < 24; j++)
                 {
@@ -591,8 +600,8 @@ namespace Prophecy
 
                     if (qi < TrueNMST.HS[i] || qi >= TrueNMST.HS[i + 1]) continue;
                     v2 = qi + Util.J2000;
-                    s1.Append(" " + Data.LunarData.rmc[(int)(v2 - v)] + Data.LunarData.Gan[(int)((v2 + 9) % 10)] + Data.LunarData.Zhi[(int)((v2 + 1) % 12)]);
-                    s1.Append(Data.LunarData.jqmc[(j + 24) % 24] + DayJ.setFromJDay_str(qi + Util.J2000).Substring(6, 5));
+                    s1.Append(" " + LunarData.rmc[(int)(v2 - v)] + LunarData.Gan[(int)((v2 + 9) % 10)] + LunarData.Zhi[(int)((v2 + 1) % 12)]);
+                    s1.Append(LunarData.jqmc[(j + 24) % 24] + new JDateTime(qi + Util.J2000).ToString("M月d日"));
                 }
                 s.Append(s1.ToString() + "<br>");
                 s1.Remove(0, s1.Length);     // C#: 在转换时将原来的字符串 s1 改写为 StringBuiler, 因此添加本句
@@ -632,7 +641,7 @@ namespace Prophecy
             int i, j;
             string c;
             string isM;
-            Day ob; //日历物件
+            DayInfo ob; //日历物件
 
             //年份处理
             this.pg0_text = this.nianhao + " 农历" + this.Ly + "年【" + this.ShX + "年】"; ;
@@ -672,38 +681,26 @@ namespace Prophecy
             this.pg2_text = this.pg2.Replace("&nbsp;", " ").Replace("<br>", "\r\n");
         }
 
+
+        
+
+
         /// <summary>
         /// 指定某日, 计算出它的所属节(气), 上一节(气), 下一节(气)信息, 并把计算结果保存在日对象中
         /// </summary>
         /// <param name="ob"></param>
         /// <returns>计算成功返回 true, 否则返回 false </returns>
-        public bool CalcJieQiInfo(Day ob, 计算节气的类型 calcType)
+        public bool CalcJieQiInfo(DayInfo ob, 计算节气的类型 calcType)
         {
-            const int JiQiInfo_Name = 0;
-            const int JiQiInfo_JDTime = 1;
-            const int JiQiInfo_Time = 2;
-            const int JiQiInfo_HistoricalJDTime = 3;
-            const int JiQiInfo_HistoricalTime = 4;
-            const int JiQiInfo_DifferentTime = 5;
-            const int JiQiInfo_JieOrQi = 6;
-            const int JiQiInfo_YueJian = 7;
-            const int JiQiInfo_DayDifference = 8;
-
-            const int PrevJieQiFlag = 0;
-            const int ThisJieQiFlag = 1;
-            const int NextJieQiFlag = 2;
-
             double y = ob.y;
-            int j, counter = 0, thisJie = -1, jieQiPos = 0;
-            SolarTerm jieqiInfo;
-            int[] jieqiInfoPos = new int[3];
-            object[,] jieqiList = new object[31, 9];
+            int Jindex = -1, jieQiPos = 0;
+            List<SolarTerm> jieqiList = new List<SolarTerm>();
 
             double v, qi = 0;
 
-            int num = TrueNMST.calcJieQi(Util.int2((y - 2000) * 365.2422 + 180), true);    // 计算节气, 以"霜降"开始
+            int num = TrueNMST.calcJieQi(Math.Floor((y - 2000) * 365.2422 + 180), true);    // 计算节气, 以"霜降"开始
 
-            for (j = 0; j < num; j++)    // 建表
+            for (int j = 0; j < num; j++)    // 建表
             {
                 if (calcType == 计算节气的类型.仅计算节)   // 只计算节
                     if (((j + 24) % 24) % 2 == 0)           // 气(跳过, 只使用节)
@@ -716,41 +713,44 @@ namespace Prophecy
                 qi = TrueNMST.ZQ[j];
 
                 v = Data.LunarData.qi_accurate2(qi);
-                jieqiList[counter, JiQiInfo_Time] = DayJ.setFromJDay_str(v + Util.J2000);
 
                 jieQiPos = (j + 24) % 24 + 20;      // 与 obb.jqmc 对应, "霜降"距首位"冬至"的距离为 20
-                if (jieQiPos >= 24)
-                    jieQiPos -= 24;
+                if (jieQiPos >= 24) jieQiPos -= 24;
 
-                jieqiList[counter, JiQiInfo_JieOrQi] = true;
-                jieqiList[counter, JiQiInfo_Name] = Data.LunarData.jqmc[jieQiPos];
-                jieqiList[counter, JiQiInfo_YueJian] = Data.LunarData.JieQiYueJian[jieQiPos];
-                jieqiList[counter, JiQiInfo_JDTime] = v + Util.J2000;
+                jieqiList.Add(new SolarTerm
+                {
+                    Time = new JDateTime(v, true),
+                    IsJie = true,
+                    Name = LunarData.jqmc[jieQiPos],
+                    YueJian = LunarData.JieQiYueJian[jieQiPos],
+                    JDTime = v + Util.J2000,
+                    HistoricalTime = new JDateTime(qi, true),
+                    HistoricalJDTime = qi + Util.J2000,
+                    DifferentTime = (Math.Floor(v + 0.5) != qi ? true : false),
+                    DayDifference = (int)(Math.Floor(v + 0.5) - qi),
 
-                jieqiList[counter, JiQiInfo_HistoricalTime] = DayJ.setFromJDay_str(qi + Util.J2000);
-                jieqiList[counter, JiQiInfo_HistoricalJDTime] = qi + Util.J2000;
-                jieqiList[counter, JiQiInfo_DifferentTime] = (Util.int2(v + 0.5) != qi ? true : false);
+                });
 
-                jieqiList[counter, JiQiInfo_DayDifference] = (int)(Util.int2(v + 0.5) - qi);
+                
 
-                counter++;
+                //counter++;
             }
 
-            for (j = 0; j < TrueNMST.ZQ.Count; j++)    // △重要: 由于调用了 SSQ.calcJieQi 方法, 计算了 31 个节气(超出年周期)数据, 故应清零
+            for (int j = 0; j < TrueNMST.ZQ.Count; j++)    // △重要: 由于调用了 SSQ.calcJieQi 方法, 计算了 31 个节气(超出年周期)数据, 故应清零
                 TrueNMST.ZQ[j] = 0;
 
             if (ob.y >= 0)
             {
                 int ymd = ob.y * 10000 + ob.m * 100 + ob.d;     // 转换成为数值表示的日期: 如 20090422
-                for (j = counter - 1; j >= 0; j--)    // 逆序查表(表中的交节日期数据是由小到大排列的)
+                for (int j = jieqiList.Count - 1; j >= 0; j--)    // 逆序查表(表中的交节日期数据是由小到大排列的)
                 {
-                    string jieqiTime = (string)jieqiList[j, JiQiInfo_Time];
-                    int jieqiYear = int.Parse(jieqiTime.Substring(0, 5));
-                    int jieqiMonth = int.Parse(jieqiTime.Substring(6, 2));
-                    int jieqiDay = int.Parse(jieqiTime.Substring(9, 2));
+                    JDateTime jieqiTime = jieqiList[j].Time;
+                    int jieqiYear = jieqiTime.Year;// int.Parse(jieqiTime.Substring(0, 5));
+                    int jieqiMonth = jieqiTime.Month;// int.Parse(jieqiTime.Substring(6, 2));
+                    int jieqiDay = jieqiTime.Day;// int.Parse(jieqiTime.Substring(9, 2));
                     if (jieqiYear * 10000 + jieqiMonth * 100 + jieqiDay <= ymd)    // 找到所属的节气
                     {
-                        thisJie = j;
+                        Jindex = j;
                         break;
                     }
                 }
@@ -758,67 +758,29 @@ namespace Prophecy
             else
             {
                 int ymd = ob.y * 10000 - (99 - ob.m) * 100 - (99 - ob.d);
-                for (j = 0; j < counter; j++)    // 顺序查表(表中的交节日期数据是由小到大排列的, 计算为数值时也要严格递增)
+                for (int j = 0; j < jieqiList.Count; j++)    // 顺序查表(表中的交节日期数据是由小到大排列的, 计算为数值时也要严格递增)
                 {
-                    string jieqiTime = (string)jieqiList[j, JiQiInfo_Time];
-                    int jieqiYear = int.Parse(jieqiTime.Substring(0, 5));
-                    int jieqiMonth = int.Parse(jieqiTime.Substring(6, 2));
-                    int jieqiDay = int.Parse(jieqiTime.Substring(9, 2));
+                    JDateTime jieqiTime = jieqiList[j].Time;
+                    int jieqiYear = jieqiTime.Year;// int.Parse(jieqiTime.Substring(0, 5));
+                    int jieqiMonth = jieqiTime.Month;// int.Parse(jieqiTime.Substring(6, 2));
+                    int jieqiDay = jieqiTime.Day;// int.Parse(jieqiTime.Substring(9, 2));
                     int jieqiYmd = jieqiYear * 10000 - (99 - jieqiMonth) * 100 - (99 - jieqiDay);
                     if (jieqiYmd >= ymd)
                     {
                         if (jieqiYmd > ymd)
-                            thisJie = j - 1;
+                            Jindex = j - 1;
                         else
-                            thisJie = j;
+                            Jindex = j;
                         break;
                     }
                 }
             }
 
-            if (thisJie > 0 && thisJie < counter)
+            if (Jindex > 0 && Jindex < jieqiList.Count)
             {
-                jieqiInfoPos[ThisJieQiFlag] = thisJie;
-                jieqiInfoPos[PrevJieQiFlag] = jieqiInfoPos[ThisJieQiFlag] - 1;
-                jieqiInfoPos[NextJieQiFlag] = jieqiInfoPos[ThisJieQiFlag] + 1;
-
-                for (j = 0; j < jieqiInfoPos.Length; j++)
-                {
-                    switch (j)
-                    {
-                        case PrevJieQiFlag:
-                            jieqiInfo = ob.STlast;
-                            break;
-
-                        case ThisJieQiFlag:
-                            jieqiInfo = ob.ST;
-                            break;
-
-                        case NextJieQiFlag:
-                            jieqiInfo = ob.STnext;
-                            break;
-
-                        default:
-                            jieqiInfo = null;
-                            break;
-                    }
-
-                    if (jieqiInfo != null)
-                    {
-                        jieqiInfo.IsJie = (bool)jieqiList[jieqiInfoPos[j], JiQiInfo_JieOrQi];
-                        jieqiInfo.Name = (string)jieqiList[jieqiInfoPos[j], JiQiInfo_Name];
-                        jieqiInfo.YueJian = (string)jieqiList[jieqiInfoPos[j], JiQiInfo_YueJian];
-                        jieqiInfo.Time = (string)jieqiList[jieqiInfoPos[j], JiQiInfo_Time];
-                        jieqiInfo.JDTime = (double)jieqiList[jieqiInfoPos[j], JiQiInfo_JDTime];
-
-                        jieqiInfo.HistoricalTime = (string)jieqiList[jieqiInfoPos[j], JiQiInfo_HistoricalTime];
-                        jieqiInfo.HistoricalJDTime = (double)jieqiList[jieqiInfoPos[j], JiQiInfo_HistoricalJDTime];
-                        jieqiInfo.DifferentTime = (bool)jieqiList[jieqiInfoPos[j], JiQiInfo_DifferentTime];
-
-                        jieqiInfo.DayDifference = (int)jieqiList[jieqiInfoPos[j], JiQiInfo_DayDifference];
-                    }
-                }
-
+                ob.STlast = jieqiList[Jindex - 1];
+                ob.ST = jieqiList[Jindex];
+                ob.STnext = jieqiList[Jindex + 1];
                 return true;
             }
 
@@ -871,7 +833,7 @@ namespace Prophecy
         /// </summary>
         private void CalcRiJianThisMonth()
         {
-            Day lunOb;
+            DayInfo lunOb;
             string yuejian = String.Empty;
 
             //OB ob = new OB();

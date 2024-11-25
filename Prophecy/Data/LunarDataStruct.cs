@@ -45,12 +45,15 @@ namespace Prophecy.Data
 
         // 双重日十二建表
         public static string[] DoubleRiJian12 = new string[] { "建", "除", "满", "平", "定", "执", "破", "危", "成", "收", "开", "闭",
-                                                                  "建", "除", "满", "平", "定", "执", "破", "危", "成", "收", "开", "闭" };
+                                                               "建", "除", "满", "平", "定", "执", "破", "危", "成", "收", "开", "闭" };
         // 双重十二地支表
         public static string[] DoubleZhi = new string[] { "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
-                                                             "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥" };
+                                                          "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥" };
+
+        public static string[] Weeks = new string[] { "日", "一", "二", "三", "四", "五", "六", "七" };    // 星期中文名称
+
         // 农历节日的定义
-        public static List<Day> LunarFeasts = getLunarFeasts();
+        public static List<DayInfo> LunarFeasts = getLunarFeasts();
 
         // 二十四节气假日的定义
         public static List<string> JieQiFeasts = getJieQiFeasts();

@@ -9,20 +9,12 @@ namespace Prophecy
     /// </summary>
     public class SolarTerm
     {
-        #region 构造函数
-
+     
         public SolarTerm()
         {
             this.Name = String.Empty;
-            this.Time = String.Empty;
             this.YueJian = String.Empty;
         }
-
-        #endregion
-
-
-
-        #region 公共属性
 
         /// <summary>
         /// 节气名称
@@ -37,7 +29,7 @@ namespace Prophecy
         /// <summary>
         /// 交节时间串
         /// </summary>
-        public string Time { get; set; }
+        public JDateTime Time { get; set; }
 
         /// <summary>
         /// 实历交节时间(儒历日, 精度仅至年月日)
@@ -47,7 +39,7 @@ namespace Prophecy
         /// <summary>
         /// 实历交节时间串(仅年月日可用, 时间部分均为 12:00:00)
         /// </summary>
-        public string HistoricalTime { get; set; }
+        public JDateTime HistoricalTime { get; set; }
 
         /// <summary>
         /// 交节时间与实历交节时间是否存在差异的标记
@@ -69,6 +61,6 @@ namespace Prophecy
         /// </summary>
         public int DayDifference { get; set; }
         
-        #endregion
+   
     }
 }
