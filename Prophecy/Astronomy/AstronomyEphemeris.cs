@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Prophecy
+namespace Prophecy.Astronomy
 {
     /// <summary>
     /// 星历类
     /// </summary>
-    public static class Ephemeris
+    public partial class AstronomyOld
     {
 
         #region 私有成员
@@ -367,28 +367,37 @@ namespace Prophecy
 
 
         /// <summary>
-        /// 计算E_L0或E_L1或E_L2等
+        /// 星历计算E_L0或E_L1或E_L2等
         /// </summary>
-        /// <param name="ob"></param>
-        /// <param name="t"></param>
-        /// <param name="n"></param>
+        /// <param name="ob">二维数组，表示特定的谐调项系数</param>
+        /// <param name="t">儒略世纪数（以 J2000.0 为基准）</param>
+        /// <param name="n">用于限制谐调项的数量，影响计算的精度</param>
         /// <returns></returns>
         static double Enn(double[][] ob, double t, double n)
         {
-            int i, j;
             double[] F;
-            double N, v = 0, tn = 1, c;
-            if (ob == Ephemeris.EL)
+            double v = 0;
+            double tn = 1;
+            if (ob == EL)
             {
-                double t2 = t * t, t3 = t2 * t, t4 = t3 * t, t5 = t4 * t; //千年数的各次方
+                // 黄经平项（拟合自 DE406 数据）
+                double t2 = t * t;
+                double t3 = t2 * t;
+                double t4 = t3 * t;
+                double t5 = t4 * t; //千年数的各次方
                 v += 1753469512 + 6283319653318 * t + 529674 * t2 + 432 * t3 - 1124 * t4 - 9 * t5 + 630 * Math.Cos(6 + 3 * t); //地球平黄经(已拟合DE406)
             }
-            n *= 3; if (n < 0) n = ob[0].Length;
-            for (i = 0; i < ob.Length; i++)  // C#: 注释循环变量中步长计算的后半语句:   , tn *= t)
+            n *= 3;
+            if (n < 0) n = ob[0].Length;
+            for (int i = 0; i < ob.Length; i++)  // C#: 注释循环变量中步长计算的后半语句:   , tn *= t)
             {
                 F = ob[i];
-                N = Math.Floor(n * F.Length / ob[0].Length + 0.5); if (i != 0) N += 3; if (N >= F.Length) N = F.Length;
-                for (j = 0, c = 0; j < N; j += 3) c += F[j] * Math.Cos(F[j + 1] + t * F[j + 2]);
+                var N = Math.Floor(n * F.Length / ob[0].Length + 0.5);
+                if (i != 0) N += 3;
+                if (N >= F.Length) N = F.Length;
+                double c = 0;
+                for (int j = 0; j < N; j += 3)
+                    c += F[j] * Math.Cos(F[j + 1] + t * F[j + 2]);
                 // v += c * tn;     // C#: 注释此句并改写如下
                 v += c * tn * Math.Pow(t, i);
             }
@@ -399,29 +408,26 @@ namespace Prophecy
         /// <summary>
         /// 返回地球坐标,t为世纪数
         /// </summary>
-        /// <param name="t"></param>
-        /// <param name="re"></param>
+        /// <param name="t">世纪数</param>
         /// <param name="n1"></param>
         /// <param name="n2"></param>
         /// <param name="n3"></param>
-        public static void E_coord(double t, double[] re, double n1, double n2, double n3)
+        public static Coordinate E_coord(double t, double n1, double n2, double n3)
         {
             t /= 10;
-            re[0] = Ephemeris.Enn(Ephemeris.EL, t, n1);
-            re[1] = Ephemeris.Enn(Ephemeris.EB, t, n2);
-            re[2] = Ephemeris.Enn(Ephemeris.ER, t, n3);
+            return new Coordinate { J = Enn(EL, t, n1), W = Enn(EB, t, n2), R = Enn(ER, t, n3) };
         }
 
 
         /// <summary>
         /// 地球经度计算,返回Date分点黄经,传入世纪数、取项数
         /// </summary>
-        /// <param name="t"></param>
-        /// <param name="n"></param>
-        /// <returns></returns>
+        /// <param name="t">世纪数</param>
+        /// <param name="n">取项数</param>
+        /// <returns>Date分点黄经</returns>
         public static double E_Lon(double t, double n)
         {
-            return Ephemeris.Enn(Ephemeris.EL, t / 10, n);
+            return Enn(EL, t / 10, n);
         }
 
 
@@ -430,7 +436,7 @@ namespace Prophecy
         /// 计算ML0或ML1或ML2
         /// </summary>
         /// <param name="ob"></param>
-        /// <param name="t"></param>
+        /// <param name="t">从2000年计算的儒略世纪</param>
         /// <param name="n"></param>
         /// <returns></returns>
         public static double Mnn(double[][] ob, double t, double n)
@@ -439,7 +445,7 @@ namespace Prophecy
             double[] F;
             double N, v = 0, tn = 1, c;
             double t2 = t * t, t3 = t2 * t, t4 = t3 * t, t5 = t4 * t, tx = t - 10;
-            if (ob == Ephemeris.ML)
+            if (ob == ML)
             {
                 v += (3.81034409 + 8399.684730072 * t - 3.319e-05 * t2 + 3.11e-08 * t3 - 2.033e-10 * t4) * Util.rad; //月球平黄经(弧度)
                 v += 5028.792262 * t + 1.1124406 * t2 + 0.00007699 * t3 - 0.000023479 * t4 - 0.0000000178 * t5;  //岁差(角秒)
@@ -450,7 +456,7 @@ namespace Prophecy
             for (i = 0; i < ob.Length; i++)  // C#: 注释循环变量中步长计算的后半语句:   , tn *= t)
             {
                 F = ob[i];
-                N = Math.Floor(n * F.Length / ob[0].Length + 0.5); if (i!=0) N += 6; if (N >= F.Length) N = F.Length;
+                N = Math.Floor(n * F.Length / ob[0].Length + 0.5); if (i != 0) N += 6; if (N >= F.Length) N = F.Length;
                 for (j = 0, c = 0; j < N; j += 6)
                 {
                     // c += F[j] * Math.Cos(F[j + 1] + t * F[j + 2] + t2 * F[j + 3] + t3 * F[j + 4] + t4 * F[j + 5]);  // C#: 原语句, 因可能导致数据精度过低, 故修改如下
@@ -460,7 +466,7 @@ namespace Prophecy
                 // v += c * tn;     // C#: 注释此句并改写如下
                 v += c * tn * Math.Pow(t, i);
             }
-            if (ob != Ephemeris.MR) v /= Util.rad;
+            if (ob != MR) v /= Util.rad;
             return v;
         }
 
@@ -469,44 +475,31 @@ namespace Prophecy
         /// <summary>
         /// 返回月球坐标,n1,n2,n3为各坐标所取的项数
         /// </summary>
-        /// <param name="t"></param>
-        /// <param name="re"></param>
+        /// <param name="t">J2000起算的儒略世纪</param>
         /// <param name="n1"></param>
         /// <param name="n2"></param>
         /// <param name="n3"></param>
-        public static void M_coord(double t, double[] re, double n1, double n2, double n3)
+        public static Coordinate M_coord(double t, double n1, double n2, double n3)
         {
-            re[0] = Ephemeris.Mnn(Ephemeris.ML, t, n1);
-            re[1] = Ephemeris.Mnn(Ephemeris.MB, t, n2);
-            re[2] = Ephemeris.Mnn(Ephemeris.MR, t, n3);
-        }
-        
-        /// <summary>
-        /// 返回月球坐标,n1,n2,n3为各坐标所取的项数
-        /// </summary>
-        /// <param name="t"></param>
-        /// <param name="re"></param>
-        /// <param name="n1"></param>
-        /// <param name="n2"></param>
-        /// <param name="n3"></param>
-        public static void M_coord(double t, LunarInfoListT<double> re, double n1, double n2, double n3)    // C#: 新扩展出来的方法
-        {
-            re[0] = Ephemeris.Mnn(Ephemeris.ML, t, n1);
-            re[1] = Ephemeris.Mnn(Ephemeris.MB, t, n2);
-            re[2] = Ephemeris.Mnn(Ephemeris.MR, t, n3);
+            return new Coordinate
+            {
+                J = Mnn(ML, t, n1),
+                W = Mnn(MB, t, n2),
+                R = Mnn(MR, t, n3)
+            };
         }
 
 
-        
+
         /// <summary>
-        /// 月球经度计算,返回Date分点黄经,传入世纪数,n是项数比例
+        /// 月球经度计算,返回Date分点黄经,传入2000起算的世纪数,n是项数比例
         /// </summary>
-        /// <param name="t"></param>
+        /// <param name="t">2000起算儒略世纪</param>
         /// <param name="n"></param>
         /// <returns></returns>
         public static double M_Lon(double t, double n)
         {
-            return Ephemeris.Mnn(Ephemeris.ML, t, n);
+            return Mnn(ML, t, n);
         }
 
 
@@ -550,13 +543,13 @@ namespace Prophecy
         /// <summary>
         /// 月日视黄经的差值
         /// </summary>
-        /// <param name="t"></param>
-        /// <param name="Mn"></param>
-        /// <param name="Sn"></param>
+        /// <param name="t">以 J2000.0 为基准的儒略世纪</param>
+        /// <param name="Mn">月项数</param>
+        /// <param name="Sn">日项数</param>
         /// <returns></returns>
         public static double MS_aLon(double t, double Mn, double Sn)
         {
-            return Ephemeris.M_Lon(t, Mn) + Coordinate.gxc_moonLon(t) - (Ephemeris.E_Lon(t, Sn) + Coordinate.gxc_sunLon(t) + Math.PI);
+            return M_Lon(t, Mn) + AstronomyOld.gxc_moonLon(t) - (E_Lon(t, Sn) + AstronomyOld.gxc_sunLon(t) + Math.PI);
         }
 
 
@@ -569,7 +562,7 @@ namespace Prophecy
         /// <returns></returns>
         public static double S_aLon(double t, double n)
         {
-            return Ephemeris.E_Lon(t, n) + Coordinate.nutationLon(t) + Coordinate.gxc_sunLon(t) + Math.PI; //注意，这里的章动计算很耗时
+            return E_Lon(t, n) + AstronomyOld.Nutation(t).dL + AstronomyOld.gxc_sunLon(t) + Math.PI; //注意，这里的章动计算很耗时
         }
 
 
@@ -581,9 +574,9 @@ namespace Prophecy
         public static double E_Lon_t(double W)
         {
             double t, v = 628.3319653318;
-            t = (W - 1.75347) / v; v = Ephemeris.E_v(t);   //v的精度0.03%，详见原文
-            t += (W - Ephemeris.E_Lon(t, 10)) / v; v = Ephemeris.E_v(t);   //再算一次v有助于提高精度,不算也可以
-            t += (W - Ephemeris.E_Lon(t, -1)) / v;
+            t = (W - 1.75347) / v; v = E_v(t);   //v的精度0.03%，详见原文
+            t += (W - E_Lon(t, 10)) / v; v = E_v(t);   //再算一次v有助于提高精度,不算也可以
+            t += (W - E_Lon(t, -1)) / v;
             return t;
         }
 
@@ -597,9 +590,9 @@ namespace Prophecy
         {
             double t, v = 8399.70911033384;
             t = (W - 3.81034) / v;
-            t += (W - Ephemeris.M_Lon(t, 3)) / v; v = Ephemeris.M_v(t);  //v的精度0.5%，详见原文
-            t += (W - Ephemeris.M_Lon(t, 20)) / v;
-            t += (W - Ephemeris.M_Lon(t, -1)) / v;
+            t += (W - M_Lon(t, 3)) / v; v = M_v(t);  //v的精度0.5%，详见原文
+            t += (W - M_Lon(t, 20)) / v;
+            t += (W - M_Lon(t, -1)) / v;
             return t;
         }
 
@@ -613,9 +606,9 @@ namespace Prophecy
         {
             double t, v = 7771.37714500204;
             t = (W + 1.08472) / v;
-            t += (W - Ephemeris.MS_aLon(t, 3, 3)) / v; v = Ephemeris.M_v(t) - Ephemeris.E_v(t);  //v的精度0.5%，详见原文
-            t += (W - Ephemeris.MS_aLon(t, 20, 10)) / v;
-            t += (W - Ephemeris.MS_aLon(t, -1, 60)) / v;
+            t += (W - MS_aLon(t, 3, 3)) / v; v = M_v(t) - E_v(t);  //v的精度0.5%，详见原文
+            t += (W - MS_aLon(t, 20, 10)) / v;
+            t += (W - MS_aLon(t, -1, 60)) / v;
             return t;
         }
 
@@ -623,14 +616,14 @@ namespace Prophecy
         /// <summary>
         /// 已知太阳视黄经反求时间
         /// </summary>
-        /// <param name="W"></param>
-        /// <returns></returns>
+        /// <param name="W">太阳视黄经</param>
+        /// <returns>以 J2000.0 为基准的儒略世纪数</returns>
         public static double S_aLon_t(double W)
         {
             double t, v = 628.3319653318;
-            t = (W - 1.75347 - Math.PI) / v; v = Ephemeris.E_v(t); //v的精度0.03%，详见原文
-            t += (W - Ephemeris.S_aLon(t, 10)) / v; v = Ephemeris.E_v(t); //再算一次v有助于提高精度,不算也可以
-            t += (W - Ephemeris.S_aLon(t, -1)) / v;
+            t = (W - 1.75347 - Math.PI) / v; v = E_v(t); //v的精度0.03%，详见原文
+            t += (W - S_aLon(t, 10)) / v; v = E_v(t); //再算一次v有助于提高精度,不算也可以
+            t += (W - S_aLon(t, -1)) / v;
             return t;
         }
 
@@ -641,12 +634,12 @@ namespace Prophecy
         /// <param name="W"></param>
         /// <returns></returns>
         public static double MS_aLon_t2(double W)
-        { 
+        {
             double t, v = 7771.37714500204;
             t = (W + 1.08472) / v;
             double L, t2 = t * t;
             t -= (-0.00003309 * t2 + 0.10976 * Math.Cos(0.784758 + 8328.6914246 * t + 0.000152292 * t2) + 0.02224 * Math.Cos(0.18740 + 7214.0628654 * t - 0.00021848 * t2) - 0.03342 * Math.Cos(4.669257 + 628.307585 * t)) / v;
-            L = Ephemeris.M_Lon(t, 20) - (4.8950632 + 628.3319653318 * t + 0.000005297 * t * t + 0.0334166 * Math.Cos(4.669257 + 628.307585 * t) + 0.0002061 * Math.Cos(2.67823 + 628.307585 * t) * t + 0.000349 * Math.Cos(4.6261 + 1256.61517 * t) - 20.5 / Util.rad);
+            L = M_Lon(t, 20) - (4.8950632 + 628.3319653318 * t + 0.000005297 * t * t + 0.0334166 * Math.Cos(4.669257 + 628.307585 * t) + 0.0002061 * Math.Cos(2.67823 + 628.307585 * t) * t + 0.000349 * Math.Cos(4.6261 + 1256.61517 * t) - 20.5 / Util.rad);
             v = 7771.38 - 914 * Math.Sin(0.7848 + 8328.691425 * t + 0.0001523 * t * t) - 179 * Math.Sin(2.543 + 15542.7543 * t) - 160 * Math.Sin(0.1874 + 7214.0629 * t);
             t += (W - L) / v;
             return t;
@@ -656,14 +649,32 @@ namespace Prophecy
         /// <summary>
         /// 已知太阳视黄经反求时间,高速低精度,最大误差不超过600秒
         /// </summary>
-        /// <param name="W"></param>
-        /// <returns></returns>
+        /// <param name="W">太阳视黄经，单位为弧度</param>
+        /// <returns>太阳达到该视黄经的时间</returns>
         public static double S_aLon_t2(double W)
         {
-            double t, v = 628.3319653318;
+            // 太阳的平均运动速度（常量），单位为弧度/天
+            double v = 628.3319653318;
+
+            double t = 0;
+            // 该步骤是利用太阳的平均运动公式计算一个初始时间 t，其中：
+            // 1.75347 是太阳视黄经的参考常数，约等于春分点（黄道经度 0°）。
+            // Math.PI 是黄道参考点的偏移量。
+            // v 是太阳的平均角速度。
             t = (W - 1.75347 - Math.PI) / v;
+
+
+            // 这一部分通过添加小项修正初始计算的时间，修正的公式来源于天文算法中的 摄动理论，用来提高时间的精度。具体公式中：
+            // 0.000005297 * t * t: 表示时间的二次项修正，考虑了太阳运动轨道的非均匀性。
+            // 0.0334166 * Math.Cos(4.669257 + 628.307585 * t): 表示主要的余弦摄动项，用于修正太阳视运动的周期性偏移。
+            // 0.0002061 * Math.Cos(2.67823 + 628.307585 * t) * t: 表示次级的余弦摄动项。
+            //最后，这些修正项都通过 v 进行归一化，调整时间 t 的结果
             t -= (0.000005297 * t * t + 0.0334166 * Math.Cos(4.669257 + 628.307585 * t) + 0.0002061 * Math.Cos(2.67823 + 628.307585 * t) * t) / v;
-            t += (W - Ephemeris.E_Lon(t, 8) - Math.PI + (20.5 + 17.2 * Math.Sin(2.1824 - 33.75705 * t)) / Util.rad) / v;
+
+            //这一步进一步通过太阳真实的视黄经来精确修正时间：
+            // E_Lon(t, 8)：计算指定时间 t 下的太阳视黄经值，精度通过参数 8 调节。
+            // (20.5 + 17.2 * Math.Sin(2.1824 - 33.75705 * t)) / Util.rad：这部分是另一个小修正项，用来考虑地球轨道的椭圆性及岁差的影响。
+            t += (W - E_Lon(t, 8) - Math.PI + (20.5 + 17.2 * Math.Sin(2.1824 - 33.75705 * t)) / Util.rad) / v;
             return t;
         }
 
@@ -693,7 +704,7 @@ namespace Prophecy
         /// <param name="h"></param>
         /// <returns></returns>
         public static double moonRad(double r, double h)
-        { 
+        {
             return 358473400 / r * (1 + Math.Sin(h) * Util.cs_rEar / r);
         }
 
@@ -709,21 +720,21 @@ namespace Prophecy
             double L = (1753469512 + 628331965331.8 * t + 5296.74 * t2 + 0.432 * t3 - 0.1124 * t4 - 0.00009 * t5 + 630 * Math.Cos(6 + 0.3 * t)) / 1000000000 + Math.PI - 20.5 / Util.rad;
 
             double E, dE, dL;
-            double[] z = new double[2];    // C#: 待定(?)
+            Coordinate z = new Coordinate();
             dL = -17.2 * Math.Sin(2.1824 - 33.75705 * t) / Util.rad; //黄经章
             dE = 9.2 * Math.Cos(2.1824 - 33.75705 * t) / Util.rad; //交角章
-            E = Coordinate.ObliquityOfEcliptic(t) + dE; //真黄赤交角
+            E = AstronomyOld.ObliquityOfEcliptic(t) + dE; //真黄赤交角
 
             //地球坐标
-            z[0] = Ephemeris.E_Lon(t, 50) + Math.PI + Coordinate.gxc_sunLon(t) + dL;
-            z[1] = -(2796 * Math.Cos(3.1987 + 8433.46616 * t) + 1016 * Math.Cos(5.4225 + 550.75532 * t) + 804 * Math.Cos(3.88 + 522.3694 * t)) / 1000000000;
+            z.J = E_Lon(t, 50) + Math.PI + AstronomyOld.gxc_sunLon(t) + dL;
+            z.W = -(2796 * Math.Cos(3.1987 + 8433.46616 * t) + 1016 * Math.Cos(5.4225 + 550.75532 * t) + 804 * Math.Cos(3.88 + 522.3694 * t)) / 1000000000;
 
-            Coordinate.llrConv(z, E); //z太阳地心赤道坐标
-            z[0] -= dL * Math.Cos(E);
+            z = AstronomyOld.llrConv(z, E); //z太阳地心赤道坐标
+            z.J -= dL * Math.Cos(E);
 
-            L = Util.rad2mrad(L - z[0]);
-            if (L > Math.PI) L -= Util.pi2;
-            return L / Util.pi2; //单位是周(天)
+            L = Util.rad2mrad(L - z.J);
+            if (L > Math.PI) L -= Math.PI * 2;
+            return L / (Math.PI * 2); //单位是周(天)
         }
 
 
@@ -735,17 +746,21 @@ namespace Prophecy
         public static double shiCha2(double t)
         {
             double L = (1753469512 + 628331965331.8 * t + 5296.74 * t * t) / 1000000000 + Math.PI;
-            double[] z = new double[2];    // C#: 待定(?)
+            Coordinate z = new Coordinate
+            {
+                J = E_Lon(t, 5) + Math.PI,
+                W = 0,
+            };
             double E = (84381.4088 - 46.836051 * t) / Util.rad;
-            z[0] = Ephemeris.E_Lon(t, 5) + Math.PI; z[1] = 0;     // 地球坐标
-            Coordinate.llrConv(z, E);     // z太阳地心赤道坐标
-            L = Util.rad2mrad(L - z[0]);
-            if (L > Math.PI) L -= Util.pi2;
-            return L / Util.pi2;     // 单位是周(天)
+            z = AstronomyOld.llrConv(z, E);     // z太阳地心赤道坐标
+            L = Util.rad2mrad(L - z.J);
+            if (L > Math.PI) L -= Math.PI * 2;
+            return L / (Math.PI * 2);     // 单位是周(天)
         }
 
         #endregion
 
 
     }
+
 }

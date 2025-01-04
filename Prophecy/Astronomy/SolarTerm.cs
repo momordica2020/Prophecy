@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Prophecy
+namespace Prophecy.Astronomy
 {
     /// <summary>
-    /// 节气信息(转换时新增的类)
+    /// 节气信息
     /// </summary>
     public class SolarTerm
     {
-     
+
         public SolarTerm()
         {
-            this.Name = String.Empty;
-            this.YueJian = String.Empty;
+            Name = string.Empty;
+            YueJian = string.Empty;
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Prophecy
         /// 实历月建(地支), 仅对节论月建(气不论月建)
         /// </summary>
         public int DayDifference { get; set; }
-        
-   
+
+
     }
 }

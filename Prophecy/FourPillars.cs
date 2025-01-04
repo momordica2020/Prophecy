@@ -11,6 +11,10 @@ namespace Prophecy
     /// </summary>
     public class FourPillars
     {
+        public GanZhi Year;
+        public GanZhi Month;
+        public GanZhi Day;
+        public GanZhi Hour;
     
         public class 排盘
         {

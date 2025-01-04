@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using TestSharpSxwnl;
 
-namespace TestSharpSxwnl
+namespace TestProphecy
 {
     static class Program
     {
@@ -14,7 +15,8 @@ namespace TestSharpSxwnl
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmMainTest());
+            //Application.Run(new frmMainTest());
+            Application.Run(new frmCalendarTest());
         }
     }
 }

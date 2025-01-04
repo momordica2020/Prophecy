@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
-using System.Globalization;
 using System.Xml;
-using Prophecy.Data;
 
 namespace Prophecy
 {
     /// <summary>
     /// 助理类
     /// </summary>
-    public static class Util
+    public partial class Util
     {
 
 
@@ -48,15 +44,11 @@ namespace Prophecy
         /// </summary>
         public const double rad = 180 * 3600 / Math.PI;    // 每弧度的角秒数
 
-        /// <summary>
-        /// 圆周率的2倍
-        /// </summary>
-        public const double pi2 = Math.PI * 2;             // 圆周率的2倍,即2*3.14159...
 
         /// <summary>
         /// 2000年1月1日 12:00:00 的儒略日数
         /// </summary>
-        public const double J2000 = 2451545;               // 2000年1月1日 12:00:00 的儒略日数
+        //public const double J2000 = 2451545;               // 2000年1月1日 12:00:00 的儒略日数
         
         #endregion 常量定义
 
@@ -151,8 +143,7 @@ namespace Prophecy
         public static double rad2mrad(double v)
         {
             v = v % (2 * Math.PI);
-            if (v < 0) 
-                v += 2 * Math.PI;
+            if (v < 0)  v += 2 * Math.PI;
             return v;
         }
 
@@ -188,60 +179,72 @@ namespace Prophecy
         }
 
 
+        /// <summary>
+        /// 四舍五入到指定小数位
+        /// </summary>
+        /// <param name="value">需要四舍五入的数值</param>
+        /// <param name="decimalPlaces">小数位数</param>
+        /// <returns>四舍五入结果</returns>
+        public static double Round(double value, int decimalPlaces)
+        {
+            double factor = Math.Pow(10, decimalPlaces);
+            return Math.Round(value * factor) / factor;
+        }
+
 
 
         /// <summary>
         /// 传入普通纪年或天文纪年，传回天文纪年
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="c">普通纪年或天文纪年, 泛型, 支持数值或字符串</param>
+        /// <param name="c">普通纪年</param>
         /// <returns></returns>
-        public static int year2Ayear<T>(T c)
+        public static int year2Ayear(int y)
         {
-            int y;
-            Regex regexToReplace = new Regex(@"[^0-9Bb\*-]");          // C#: 匹配字符: 数字0-9, B, b, *, -
-            string strC = regexToReplace.Replace(c.ToString(), "");    // C#: 去除无效字符
+            //int y;
+            //Regex regexToReplace = new Regex(@"[^0-9Bb\*-]");          // C#: 匹配字符: 数字0-9, B, b, *, -
+            //string strC = regexToReplace.Replace(c.ToString(), "");    // C#: 去除无效字符
 
-            string q = strC.Substring(0, 1);
-            if (q == "B" || q == "b" || q == "*")     //通用纪年法(公元前)
-            {
-                y = 1 - Util.VAL(strC.Substring(1), 1);
-                if (y > 0)
-                {
-                    //MessageBox.Show("通用纪法的公元前纪法从 B.C.1 年开始，并且没有公元 0 年！", 
-                    //                "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return -10000;
-                }
-            }
-            else y = Util.VAL(strC, 1);
+           // string q = strC.Substring(0, 1);
+            //if (q == "B" || q == "b" || q == "*")     //通用纪年法(公元前)
+            //{
+            //    y = 1 - Util.VAL(strC.Substring(1), 1);
+            //    if (y > 0)
+            //    {
+            //        //MessageBox.Show("通用纪法的公元前纪法从 B.C.1 年开始，并且没有公元 0 年！", 
+            //        //                "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //        return -10000;
+            //    }
+            //}
+            //else y = Util.VAL(strC, 1);
 
             if (y < -4712)
             {
                 //MessageBox.Show("不得小于 B.C.4713 年！", "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning); 
                 return -10000;
             }
-            if (y > 9999)
-            {
-                //MessageBox.Show("超过9999年的农历计算很不准。", "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+            //if (y > 9999)
+            //{
+            //    //MessageBox.Show("超过9999年的农历计算很不准。", "信息", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            //}
 
             return y;
         }
         
 
 
-        /// <summary>
-        /// 传入天文纪年，传回显示用的常规纪年
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="y">天文纪年, 泛型, 支持数值或字符串</param>
-        /// <returns></returns>
-        public static string Ayear2year<T>(T y)
-        {
-            int result = Util.VAL(y.ToString(), 1);
-            if (result <= 0) return "B" + (-result + 1);
-            return result.ToString();
-        }
+        ///// <summary>
+        ///// 传入天文纪年，传回显示用的常规纪年
+        ///// </summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="y">天文纪年, 泛型, 支持数值或字符串</param>
+        ///// <returns></returns>
+        //public static string Ayear2year<T>(T y)
+        //{
+        //    int result = Util.VAL(y.ToString(), 1);
+        //    if (result <= 0) return "B" + (-result + 1);
+        //    return result.ToString();
+        //}
 
 
 
@@ -264,9 +267,9 @@ namespace Prophecy
                 case 1:
                     {
                         // C#: 为避免 Substring 方法超出范围取子串引发异常, 改用本类中的静态方法 SUBSTRING
-                        a = Util.VAL(Util.SUBSTRING(timeStr[0], 0, 2), 1);
-                        b = Util.VAL(Util.SUBSTRING(timeStr[0], 2, 2), 1);
-                        c = Util.VAL(Util.SUBSTRING(timeStr[0], 4, 2), 1);
+                        a = Util.VAL(Util.SUBSTR(timeStr[0], 0, 2), 1);
+                        b = Util.VAL(Util.SUBSTR(timeStr[0], 2, 2), 1);
+                        c = Util.VAL(Util.SUBSTR(timeStr[0], 4, 2), 1);
                         break;
                     }
                 case 2:
@@ -290,58 +293,48 @@ namespace Prophecy
 
      
 
-        /// <summary>
-        /// 计算八字
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="ob">日对象</param>
-        /// <param name="type">八字类型</param>
-        /// <param name="curTZ">时区</param>
-        /// <param name="year">年</param>
-        /// <param name="month">月</param>
-        /// <param name="day">日</param>
-        /// <param name="time">时间串</param>
-        /// <param name="longitudeStr">经度(度分秒格式)</param>
-        /// <returns>八字字符串</returns>
-        public static string ML_calc<T>(DayInfo ob, BaZiType type, double curTZ, T year, T month, T day, string time, string longitudeStr, BaZiTypeS baziTypes)
-        {
-            double y = Util.year2Ayear(year);
-            if (y == -10000)
-                return String.Empty;
+        ///// <summary>
+        ///// 计算八字
+        ///// </summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="ob">日对象</param>
+        ///// <param name="type">八字类型</param>
+        ///// <param name="TimeZoneNum">时区</param>
+        ///// <param name="year">年</param>
+        ///// <param name="month">月</param>
+        ///// <param name="day">日</param>
+        ///// <param name="time">时间串</param>
+        ///// <param name="longitudeStr">经度(度分秒格式)</param>
+        ///// <returns>八字字符串</returns>
+        //public static string ML_calc<T>(DayInfo ob, BaZiType type, double TimeZoneNum, T year, T month, T day, string time, string longitudeStr, BaZiTypeS baziTypes)
+        //{
+        //    double y = Util.year2Ayear(year);
+        //    if (y == -10000) return String.Empty;
 
-            string timeName = (type == BaZiType.TrueLocalSolar ? "真太阳 " :
-                                 (type == BaZiType.PingLocalSolar ? "平太阳 " : "北京时间 "));
+        //    string timeName = (type == BaZiType.TrueLocalSolar ? "真太阳 " :  (type == BaZiType.PingLocalSolar ? "平太阳 " : "北京时间 "));
 
-            double t = Util.timeStr2hour(time);
+        //    double t = Util.timeStr2hour(time);
 
-            double longitude;
-            if (type == BaZiType.TrueBJ)
-                longitude = Util.str2rad("-120°");    // 解析东经120°经度为弧度
-            else
-                longitude = Util.str2rad(longitudeStr);    // 解析经度为弧度
+        //    double longitude;
+        //    if (type == BaZiType.TrueBJ) longitude = Util.str2rad("-120°");    // 解析东经120°经度为弧度
+        //    else longitude = Util.str2rad(longitudeStr);                        // 解析经度为弧度
 
-            double jd = new JDateTime((int)y, int.Parse(month.ToString()),  (int)(int.Parse(day.ToString()) + t / 24)).ToJulianDate();
+        //    var jdt = new JDateTime((int)y, int.Parse(month.ToString()),  (int)(int.Parse(day.ToString()) + t / 24));
 
-            if (type == BaZiType.TrueLocalSolar)
-            {
-                Data.LunarData.mingLiBaZi(jd + curTZ / 24 - Util.J2000, longitude, ob, baziTypes);    // 八字计算, 独立于 Lunar 类
-                timeName += ob.bz_zty;
-            }
-            else
-            {
-                Data.LunarData.mingLiBaZiNormal(jd + curTZ / 24 - Util.J2000, longitude, ob, baziTypes);    // 八字计算, 独立于 Lunar 类
-                timeName += ob.bz_pty;
-            }
+        //    LunarData.mingLiBaZi(jdt.JulianDateFrom2000 + TimeZoneNum / 24, longitude, ob, baziTypes);    // 八字计算, 独立于 Lunar 类
+        //    //if (type == BaZiType.TrueLocalSolar) {
+                
+        //    //} else {
+        //    //    LunarData.mingLiBaZiNormal(jdt.JulianDateFrom2000 + TimeZoneNum / 24, longitude, ob, baziTypes);    // 八字计算, 独立于 Lunar 类
+        //    //}
 
-            // C#: 新增的代码段
-            var ddd = new JDateTime(jd);
-            return "[日标]：" + "公历 " + ddd.Year + "-" + ddd.Month + "-" + ddd.Day + " 儒略日数 " + Math.Floor(jd + 0.5) + 
-                                " 距2000年首" + Math.Floor(jd + 0.5 - Util.J2000) + "日"
-                   + "\r\n[八字]：" + ob.bz_jn + "年 " + ob.bz_jy + "月 " + ob.bz_jr + "日 " + ob.bz_js + "时 " + timeName
-                   + "\r\n[纪时]：" + ob.bz_JS
-                   + "\r\n[时标]：" + "23　 01　 03　 05　 07　 09　 11　 13　 15　 17　 19　 21　 23";
+        //    return $"[日标]：公历 {jdt.Year}-{jdt.Month}-{jdt.Day} 儒略日数 {Math.Floor(jdt.JulianDate + 0.5)}" 
+        //           + $" 距2000年首{Math.Floor(jdt.JulianDateFrom2000 + 0.5)}日\r\n"
+        //           + $"[八字]：{ob.bz_jn}年 {ob.bz_jy}月 {ob.bz_jr}日 {ob.bz_js}时 {timeName}{(type == BaZiType.TrueLocalSolar ? ob.bz_zty?.ToString():ob.bz_pty?.ToString())}\r\n"
+        //           + $"[纪时]：{ob.bz_JS}\r\n"
+        //           + $"[时标]：" + "23　 01　 03　 05　 07　 09　 11　 13　 15　 17　 19　 21　 23";
 
-        }
+        //}
         
   
 
@@ -412,6 +405,76 @@ namespace Prophecy
             return (nowDTO.UtcDateTime - DT19700101).TotalMilliseconds;
         }
 
+        /// <summary>
+        /// 根据中文日期表示来取得数字。例如初三=3，二三=23，二十三=23，廿四=24，正=1，腊=12
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public static int GetNumFromHans(string input)
+        {
+            int res = 0;
+
+            Dictionary<char, int> ChineseDigitMap = new()
+            {   
+                { '〇', 0 }, { '零', 0 }, { '初', 0 },
+                { '一', 1 }, { '壹', 1 }, { '壱', 1 }, { '〡', 1 }, { '正', 1 },
+                { '二', 2 }, { '贰', 2 }, { '弐', 2 }, { '貮', 2 }, { '两', 2 },
+                { '三', 3 }, { '叁', 3 }, { '参', 3 }, { '仨', 3 },
+                { '四', 4 }, { '肆', 4 }, { '〤', 4 },
+                { '五', 5 }, { '伍', 5 }, { '〥', 5 }, 
+                { '六', 6 }, { '陆', 6 }, { '〦', 6 }, 
+                { '七', 7 }, { '柒', 7 }, { '〧', 7 },
+                { '八', 8 }, { '捌', 8 }, { '〨', 8 },
+                { '九', 9 }, { '玖', 9 }, { '〩', 9 },
+                { '十', 10 }, { '拾', 10 },
+                { '腊', 12 },
+                { '廿', 20 }, 
+                { '卅', 30 }, 
+                { '卌', 40 }, 
+            };
+            int tempNumber = 0;
+            foreach (char ch in input)
+            {
+                if (ChineseDigitMap.TryGetValue(ch, out int value))
+                {
+                    if (value >= 10) // 遇到“十”
+                    {
+                        if (tempNumber == 0)
+                        {
+                            tempNumber = value; // “十”单独出现表示10
+                        }
+                        else
+                        {
+                            tempNumber *= value; // 如“二十”表示2*10
+                        }
+                    }
+                    else
+                    {
+                        if (tempNumber >= 10)
+                        {
+                            tempNumber += value;
+                            res += tempNumber;
+                            tempNumber = 0;
+                        }
+                        else
+                        {
+                            tempNumber = tempNumber * 10 + value; // 普通数字接在后面
+                        }
+                    }
+                }
+                else
+                {
+                    res = 0;
+                    break;
+                }
+            }
+
+            return res;
+        }
+
+
+        
+
 
         /// <summary>
         /// 取子字符串, 允许起始位置超过整个字符串长度(此时返回空串), 弥补 String.Substring 方法的不足
@@ -420,7 +483,7 @@ namespace Prophecy
         /// <param name="nStartPosition">起始位置（从零开始）</param>
         /// <param name="nLength">子串的长度</param>
         /// <returns></returns>
-        public static string SUBSTRING(string cExpression, int nStartPosition, int nLength)
+        public static string SUBSTR(string cExpression, int nStartPosition, int nLength)
         {
             if (nStartPosition >= cExpression.Length || nStartPosition < 0 || nLength <= 0)
                 return String.Empty;
@@ -429,7 +492,20 @@ namespace Prophecy
             else
                 return cExpression.Substring(nStartPosition, nLength);
         }
-
+        /// <summary>
+        /// 截串(网页设计对过长的文字做截处理)
+        /// </summary>
+        /// <param name="s">被截取的字符串</param>
+        /// <param name="n">要截取的长度</param>
+        /// <param name="end">对超长字符串, 在截取的子串尾部添加的内容</param>
+        /// <returns></returns>
+        public static string SUBSTR2(string s, int n, string end)
+        {
+            Regex regToReplace = new Regex(@"(^\s*)|(\s*$)", RegexOptions.ECMAScript);   // 去除首尾空白字符的正则表达式模板
+            s = regToReplace.Replace(s, "");
+            if (s.Length > n + 1) return s.Substring(0, n) + end;
+            return s;
+        }
 
 
         /// <summary>
@@ -592,29 +668,7 @@ namespace Prophecy
 
     }
 
-  
 
-
-    /// <summary>
-    /// 计算节气的类型
-    /// </summary>
-    public enum 计算节气的类型
-    {
-        /// <summary>
-        /// 仅计算节
-        /// </summary>
-        仅计算节,
-
-        /// <summary>
-        /// 仅计算气
-        /// </summary>
-        仅计算气, 
-
-        /// <summary>
-        /// 计算节和气
-        /// </summary>
-        计算节和气
-    }
 
 
    

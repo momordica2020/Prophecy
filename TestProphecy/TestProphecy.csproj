@@ -13,6 +13,7 @@
     <Folder Include="Properties\DataSources\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CalendarLibrary\CalendarLibrary.csproj" />
     <ProjectReference Include="..\Prophecy\Prophecy.csproj" />
   </ItemGroup>
 </Project>

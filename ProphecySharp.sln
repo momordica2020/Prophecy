@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Prophecy", "Prophecy\Prophe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestProphecy", "TestProphecy\TestProphecy.csproj", "{437A253A-DB9C-43A5-AC32-81AB24C7F053}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "test", "test\test.csproj", "{771D44CF-541A-44C6-94DA-2997E96F6267}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{09A64140-79E3-4B3B-AB4C-A2620EC4C110}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -18,6 +16,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "解决方案项", "解决�
 	ProjectSection(SolutionItems) = preProject
 		readme.md = readme.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarLibrary", "CalendarLibrary\CalendarLibrary.csproj", "{0B26D986-D213-43C3-80B6-5506A3089BD0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarLibraryTest", "CalendarLibraryTest\CalendarLibraryTest.csproj", "{9B482FC1-7894-4B41-99E3-6533341CFA65}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,12 +35,19 @@ Global
 		{437A253A-DB9C-43A5-AC32-81AB24C7F053}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{437A253A-DB9C-43A5-AC32-81AB24C7F053}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{437A253A-DB9C-43A5-AC32-81AB24C7F053}.Release|Any CPU.Build.0 = Release|Any CPU
-		{771D44CF-541A-44C6-94DA-2997E96F6267}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{771D44CF-541A-44C6-94DA-2997E96F6267}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{771D44CF-541A-44C6-94DA-2997E96F6267}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{771D44CF-541A-44C6-94DA-2997E96F6267}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B26D986-D213-43C3-80B6-5506A3089BD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B26D986-D213-43C3-80B6-5506A3089BD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B26D986-D213-43C3-80B6-5506A3089BD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B26D986-D213-43C3-80B6-5506A3089BD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B482FC1-7894-4B41-99E3-6533341CFA65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B482FC1-7894-4B41-99E3-6533341CFA65}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B482FC1-7894-4B41-99E3-6533341CFA65}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B482FC1-7894-4B41-99E3-6533341CFA65}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {21904833-C026-4105-B2B3-E635F7A386C8}
 	EndGlobalSection
 EndGlobal

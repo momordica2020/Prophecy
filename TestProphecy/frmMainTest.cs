@@ -12,12 +12,28 @@ using System.Text.RegularExpressions;
 using System.Xml;
 using Prophecy.Data;
 using Microsoft.VisualBasic;
+using System.Linq;
+using static System.ComponentModel.Design.ObjectSelectorEditor;
+using Prophecy.Astronomy;
 
 namespace TestSharpSxwnl
 {
     public partial class frmMainTest : Form
     {
-        Lunar lun = new Lunar();
+        LunarYear lyear;
+        LunarMonth lmonth;
+
+
+        /// <summary>
+        /// 当前站点经纬度
+        /// </summary>
+        Coordinate curSiteCoord;
+
+        /// <summary>
+        /// 当前时区
+        /// </summary>
+        TimeZoneItem curTimeZone;
+
         double curJD2000, curTZ;
         SunMoon smc;// = new SunMoon();
         string TempPath = "";
@@ -48,18 +64,18 @@ namespace TestSharpSxwnl
             this.curTZ = TimeZoneInfo.Local.GetUtcOffset(nowDT).TotalHours;     // 中国: 东 8 区
             this.curJD2000 = Util.NowUTCmsSince19700101(nowDT) / 86400000d - 10957.5 - this.curTZ / 24d; //J2000起算的儒略日数(当前本地时间)
 
-            nowTZ = new JDateTime((double)(this.curJD2000 + Util.J2000));
+            nowTZ = new JDateTime(curJD2000, true);
 
-            this.Caly_y.Text = nowTZ.Year.ToString();
+            this.Caly_y.Text = nowTZ.GerogeYear.ToString();
 
-            this.Cml_y.Text = nowTZ.Year.ToString();//公历年
-            this.Cml_m.Text = nowTZ.Month.ToString();//公历月
-            this.Cml_d.Text = nowTZ.Day.ToString();//公历日
-            this.Cml_his.Text = nowTZ.ToString("HH:mm:ss");// nowTZ.Hour + ":" + DayJ.m + ":" + DayJ.s.ToString("F0").PadLeft(2, '0');//时分秒 16:25:35
+            this.Cml_y.Text = nowTZ.GerogeYear.ToString();//公历年
+            this.Cml_m.Text = nowTZ.GerogeMonth.ToString();//公历月
+            this.Cml_d.Text = nowTZ.GerogeDay.ToString();//公历日
+            this.Cml_his.Text = nowTZ.ToStringGeroge("HH:mm:ss");// nowTZ.Hour + ":" + DayJ.m + ":" + DayJ.s.ToString("F0").PadLeft(2, '0');//时分秒 16:25:35
 
-            this.Cal_y.Text = nowTZ.Year.ToString();
-            this.Cal_m.Text = nowTZ.Month.ToString();
-            this.curJD2000 = Math.Floor(this.curJD2000 + 0.5);
+            this.Cal_y.Text = nowTZ.GerogeYear.ToString();
+            this.Cal_m.Text = nowTZ.GerogeMonth.ToString();
+            //this.curJD2000 = Math.Floor(this.curJD2000 + 0.5);
 
             this.InitComboBoxes();
 
@@ -82,17 +98,20 @@ namespace TestSharpSxwnl
         {
             // double By = LunarHelper.year2Ayear<string>(this.Cal_y.Text);
             //// C#: 注: 使用上句也可以, 如果在调用泛型方法时, 不指定类型, C# 编译器将自动推断其类型
-            double By = Util.year2Ayear(this.Cal_y.Text);    // 自动推断类型为: string 
-            double Bm = int.Parse(this.Cal_m.Text);
-            lun.yueLiHTML((int)By, (int)Bm, this.curJD2000);
-            this.txtPg0_Text.Text = lun.pg0_text;
-            this.txtPg1_Text.Text = lun.pg1_text;
-            this.txtPg2_Text.Text = lun.pg2_text;
+            double By = Util.year2Ayear(int.Parse(this.Cal_y.Text));    // 自动推断类型为: string 
+            int Bm = int.Parse(this.Cal_m.Text);
+            lyear = new LunarYear(curJD2000 + JDateTime.JD_2000);
+            lmonth = lyear.Month[Bm];
+            lmonth.ToText();
+            lmonth.ToHtml(curJD2000);// ((int)By, (int)Bm, this.curJD2000);
+            this.txtPg0_Text.Text = lyear.pg0_text;
+            this.txtPg1_Text.Text = lmonth.text1;
+            this.txtPg2_Text.Text = lmonth.text2;
 
             this.showMessD(-2);
 
-            this.StrToFile("<html><META http-equiv=Content-Type content='text/html; charset=utf-8'>" + lun.pg0 +
-                           "<p></p>" + lun.pg1 + "<p></p>" + lun.pg2 +
+            this.StrToFile("<html><META http-equiv=Content-Type content='text/html; charset=utf-8'>" + lyear.html0 +
+                           "<p></p>" + lmonth.html1 + "<p></p>" + lmonth.html2 +
                            "\r\n <script language='javascript'>" +
                            "\r\n function changeBackcolor(oTdOfDay, setBackcolor) {" +
                            "\r\n if(oTdOfDay == null) return;" +
@@ -174,10 +193,10 @@ namespace TestSharpSxwnl
 
         private void ML_calc(BaZiType type)
         {
-            DayInfo ob = new DayInfo();
-            this.txtBazi.Text = Util.ML_calc<string>(ob, type, this.curTZ, this.Cml_y.Text, this.Cml_m.Text,
-                                                            this.Cml_d.Text, this.Cml_his.Text, this.txtLongitude.Text,
-                                                            (BaZiTypeS)this.cmbBaziTypeS.SelectedIndex);
+            //DayInfo ob = new DayInfo();
+            //this.txtBazi.Text = Util.ML_calc<string>(ob, type, this.curTZ, this.Cml_y.Text, this.Cml_m.Text,
+            //                                                this.Cml_d.Text, this.Cml_his.Text, this.txtLongitude.Text,
+            //                                                (BaZiTypeS)this.cmbBaziTypeS.SelectedIndex);
         }
         #endregion 计算八字信息(独立)
 
@@ -185,47 +204,59 @@ namespace TestSharpSxwnl
         #region 初始化地区和县市组合框, 响应其 SelectedIndexChanged 事件
         private void InitComboBoxes()
         {
-            for (int i = 0; i < JWdata.SQv.Count; i++)
-                this.Sel_zhou.Items.Add(JWdata.SQv[i][0]);
+            for (int i = 0; i < TimeZones.TimeZoneList.Count; i++)
+                this.Sel_zhou.Items.Add(TimeZones.TimeZoneList[i].Name);
             this.Sel_zhou.SelectedIndex = 0;
 
-            for (int i = 0; i < JWdata.JWv.Count; i++)
-                this.Sel_Province.Items.Add(JWdata.JWv[i][0]);
+
+
+            var allp = LocationInfo.FindCoordinateAllProvince();
+            for (int i = 0; i < allp.Count; i++)
+                this.Sel_Province.Items.Add(allp[i].Name);
             this.Sel_Province.SelectedIndex = 24;    // 选中 "云南省"
         }
 
         private void Sel_zhou_SelectedIndexChanged(object sender, EventArgs e)
         {
             this.Sel_dq.Items.Clear();
-            for (int i = 1; i < JWdata.SQv[this.Sel_zhou.SelectedIndex].Count; i += 2)
-                this.Sel_dq.Items.Add(JWdata.SQv[this.Sel_zhou.SelectedIndex][i]);
-            this.Sel_dq.SelectedIndex = 0;
+            var selectZone = Sel_zhou.SelectedItem.ToString();
+            curTimeZone = TimeZones.FindTimeZone(selectZone);
+            
+            this.Sel_sqsm.Text = curTimeZone.Name;
+            //for (int i = 1; i < allc.Count; i += 2)
+            //    this.Sel_dq.Items.Add(allc[i].Area);
+            //this.Sel_dq.SelectedIndex = 0;
         }
 
         private void Sel_dq_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string strSQInfo = JWdata.SQv[this.Sel_zhou.SelectedIndex][this.Sel_dq.SelectedIndex * 2 + 2];
-            JWdata.SQdecode(strSQInfo);
-            this.Sel_sqsm.Text = JWdata.SQDescription;   // 注: 省略了部分代码
+            //string strSQInfo = JWdata.SQv[this.Sel_zhou.SelectedIndex][this.Sel_dq.SelectedIndex * 2 + 2];
+            //JWdata.SQdecode(strSQInfo);
+            //string selectDQ = this.Sel_dq.SelectedValue as string;
+            //this.Sel_sqsm.Text = JWdata.SQDescription;   // 注: 省略了部分代码
         }
 
         private void Sel_Province_SelectedIndexChanged(object sender, EventArgs e)
         {
             this.Sel_Region.Items.Clear();
-            for (int i = 1; i < JWdata.JWv[this.Sel_Province.SelectedIndex].Count; i++)
+            var selectC = Sel_Province.SelectedItem.ToString();
+            var allarea = LocationInfo.FindCoordinateByCity(selectC);
+            for (int i = 1; i < allarea.Count; i++)
             {
-                this.Sel_Region.Items.Add(JWdata.JWv[this.Sel_Province.SelectedIndex][i].Substring(4));
+                this.Sel_Region.Items.Add(allarea[i].Name);
             }
             this.Sel_Region.SelectedIndex = 0;
         }
 
         private void Sel_Region_SelectedIndexChanged(object sender, EventArgs e)
         {
-            this.Sel_Region.Tag = JWdata.JWv[this.Sel_Province.SelectedIndex][this.Sel_Region.SelectedIndex + 1].Substring(0, 4);
-            JWdata.JWdecode((string)this.Sel_Region.Tag);
-            string strJ = Util.rad2str2(JWdata.J);
-            this.Cal_zdzb.Text = "经度(向西为正) " + strJ +
-                                 " 纬度 " + Util.rad2str2(JWdata.W);
+            var selectA = Sel_Region.SelectedItem.ToString();
+            var area = LocationInfo.FindCoordinate(selectA);
+
+            this.Sel_Region.Tag = area.Name;
+            curSiteCoord = area.Coord;
+            string strJ = Util.rad2str2(curSiteCoord.J);
+            this.Cal_zdzb.Text = $"经度(向西为正) {strJ} 纬度 {Util.rad2str2(curSiteCoord.W)}";
             this.txtLongitude.Text = strJ;
             this.showMessD(-2);
         }
@@ -233,70 +264,108 @@ namespace TestSharpSxwnl
 
 
         #region 计算并返回日月升中降信息
-        private string RTS1(double jd, double vJ, double vW, double tz)
+
+        /// <summary>
+        /// 计算并返回日月升中降信息
+        /// </summary>
+        /// <param name="jd2000"></param>
+        /// <param name="coord"></param>
+        /// <param name="tz"></param>
+        /// <returns></returns>
+        private string RTS1(double jd2000, Coordinate coord, double tz)
         {
-            SZJ.calcRTS(jd, 1, vJ, vW, tz); //升降计算,使用北时时间,tz=-8指东8区,jd+tz应在当地正午左右(误差数小时不要紧)
-            string s;
-            LunarInfoListT<double> ob = SZJ.rts[0];
-            //DayJ.setFromJDay(jd + Util.J2000);
-            s = "日出 " + ob.s + " 日落 " + ob.j + " 中天 " + ob.z + "\r\n"
-              + "月出 " + ob.Ms + " 月落 " + ob.Mj + " 月中 " + ob.Mz + "\r\n"
-              + "晨起天亮 " + ob.c + " 晚上天黑 " + ob.h + "\r\n"
-              + "日照时间 " + ob.sj + " 白天时间 " + ob.ch + "\r\n";
-            return s;
+            var ob = RaiseFallInfo.GetSunMoonRaiseFall(jd2000, 1, curSiteCoord, tz).FirstOrDefault(); //升降计算,使用北时时间,tz=-8指东8区,jd+tz应在当地正午左右(误差数小时不要紧)
+            //DayJ.setFromJDay(jd + JDateTime.JD_2000);
+            return 
+                $"日出 {ob.SunRaise} 日落 {ob.SunFall} 中天 {ob.SunMiddle}\r\n"
+              + $"月出 {ob.MoonRaise} 月落 {ob.MoonFall} 月中 {ob.MoonMiddle}\r\n"
+              + $"月出 {ob.morning} 月落 {ob.nightfall}\r\n"
+              + $"日照时间 {ob.lightLength} 白天时间 {ob.dayLength}\r\n";
         }
         #endregion
 
 
         #region 显示日信息
+
+        /// <summary>
+        /// 显示日信息
+        /// </summary>
+        /// <param name="n"></param>
         private void showMessD(int n)
-        { //显时本月第n日的摘要信息。调用前应先执月历页面生成，产生有效的lun对象
+        { 
+            //显时本月第n日的摘要信息。调用前应先执月历页面生成，产生有效的lmonth对象
             this.Cal_pan.Text = "";
-            if (this.lun.dn == 0 || n >= this.lun.dn) return;
-            double vJ = JWdata.J, vW = JWdata.W;
+            if (lmonth == null || this.lmonth.DayNum == 0 || n >= this.lmonth.DayNum) return;
+            //double vJ = JWdata.J, vW = JWdata.W;
 
 
             if (n == -1)
-            { //鼠标移出日期上方
+            {
+                //鼠标移出日期上方
                 this.Cal_pan.Text = "";
                 this.Cal5.Tag = this.Cal5.Text;
             }
-            if (n == -2) this.Cal5.Text = this.RTS1(this.curJD2000, vJ, vW, this.curTZ);    // 计算并显示当前日期的日月升降信息
-            if (n < 0) return;
-            //显示n指定的日期信息
-            DayInfo ob = this.lun.lun[n];
-            string thisDaySunMoonInfo = this.RTS1(ob.d0, vJ, vW, this.curTZ);    // 计算并显示指定日期的日月升降信息
+            else if (n == -2)
+            {
+                // 计算并显示当前日期的日月升降信息
+                this.Cal5.Text = this.RTS1(this.curJD2000, curSiteCoord, this.curTZ);
+            }
+            else if (n > 0)
+            {
 
-            StringBuilder sb = new StringBuilder();
-            if (true)
-            { //鼠标移过日期上方
-                sb.AppendLine(Util.Ayear2year(ob.y) + "年" + ob.m + "月" + ob.d + "日");//公历日期
-                sb.AppendLine(ob.Lyear3 + "年 星期" + LunarData.Weeks[(int)(ob.week)] + " " + ob.XiZ);// 丁酉年 星期日 狮子座
-                sb.AppendLine(ob.Lyear4 + "年 " + ob.Lleap + ob.Lmc + "月" + (ob.Ldn > 29 ? "大 " : "小 ") + ob.Ldc + "日");// 4715年 润六月大 初八日
-                sb.AppendLine(ob.Lyear2 + "年 " + ob.Lmonth2 + "月 " + ob.Lday2 + "日");// 丁酉年 丁未月 戊午日
-                sb.AppendLine("回历[" + ob.Hyear + "年" + ob.Hmonth + "月" + ob.Hday + "日]");//回历[1438年11月6日]
-                if (ob.yxmc.Length > 0) sb.Append(ob.yxmc + " " + ob.yxsj + " ");//
-                if (ob.jqmc.Length > 0) sb.AppendLine("定" + ob.jqmc + " " + ob.jqsj);
-                else { if (ob.Ljq.Length > 0) sb.AppendLine(ob.Ljq); }
-                if (ob.A.Length > 0) sb.Append(ob.A + " ");
-                if (ob.B.Length > 0) sb.Append(ob.B + " ");
-                if (ob.C.Length > 0) sb.Append(ob.C);
+                //显示n指定的日期信息
+                var ob = this.lmonth.LDay[n];
+                string thisDaySunMoonInfo = RTS1(ob.jd0, curSiteCoord, this.curTZ);    // 计算并显示指定日期的日月升降信息
+
+                StringBuilder sb = new StringBuilder();
+
+                 //鼠标移过日期上方
+                 
+                sb.AppendLine($"{ob.jDate.ToStringGeroge("yyyy年MM月dd日")}");//公历日期
+                sb.AppendLine($"{ob.Year.ganZhi.ToString()}年 星期{ob.WeekDay.ToString()} {ob.xingzuo.ToString()}座");// 丁酉年 星期日 狮子座
+               // 这里本来是什么黄帝历的，被我暂时去掉了
+                sb.AppendLine($"{ob.jDate.ToStringGeroge("yyyy")}年 {(ob.Month.isLeap?"闰":"")}{ob.Month.Name}月{(ob.Month.isBig?"大":"")} {ob.Name}日");// 4715年 润六月大 初八日
+
+
+                sb.AppendLine($"{ob.Year.ganZhi.ToString()}年 {ob.Month.ganZhi.ToString()}月 {ob.ganZhi.ToString()}日");// 丁酉年 丁未月 戊午日
+                
+                sb.AppendLine($"回历[{ob.jDate.IslamicYear}年 {ob.jDate.IslamicMonth}月 {ob.jDate.IslamicDay}日]");// 回历[1438年11月6日]
+
+                sb.AppendLine($"{ob.MoonState.ToStringDesc()} {(ob.isTodayJieqi ? $"定{ob.Jieqi}" : "")}");
+
+                //if (ob.yxmc.Length > 0) sb.Append(ob.yxmc + " " + ob.yxsj + " ");//
+                //if (ob.jqmc.Length > 0) sb.AppendLine("定" + ob.jqmc + " " + ob.jqsj);
+                //else { if (ob.Ljq.Length > 0) sb.AppendLine(ob.Ljq); }
+
+                if (ob.Feasts(1).Count > 0) sb.AppendLine(string.Join(",", ob.Feasts(1).Select(f => f.Name)));
+                if (ob.Feasts(2).Count > 0) sb.AppendLine(string.Join(",", ob.Feasts(2).Select(f => f.Name)));
+                if (ob.Feasts(3).Count > 0) sb.AppendLine(string.Join(",", ob.Feasts(3).Select(f => f.Name)));
+                //if (ob.A.Length > 0) sb.Append(ob.A + " ");
+                //if (ob.B.Length > 0) sb.Append(ob.B + " ");
+                //if (ob.C.Length > 0) sb.Append(ob.C);
 
                 sb.AppendLine();
-                sb.Append("日十二建: " + ob.Ri12Jian);
+                //sb.Append("日十二建: " + ob.Ri12Jian);
                 this.Cal_pan.Text = sb.ToString() + "\r\n\r\n" + thisDaySunMoonInfo;
+                
             }
+
+
         }
         #endregion
 
 
         #region 显示实时时钟
+
+
         private void timerTick_Tick(object sender, EventArgs e)
         {
             this.showClockAndSunMoonInfo();
         }
 
-
+        /// <summary>
+        /// 显示实时时钟
+        /// </summary>
         private void showClockAndSunMoonInfo()
         {
             if (this.Cal_pause.Checked)
@@ -307,31 +376,31 @@ namespace TestSharpSxwnl
             DateTime nowDT = DateTime.Now;
 
             // 显示太阳月亮坐标
-            double jd = Util.NowUTCmsSince19700101(nowDT) / 86400000d - 10957.5; //J2000起算的儒略日数
+            double jd2000 = Util.NowUTCmsSince19700101(nowDT) / 86400000d - 10957.5; //J2000起算的儒略日数
                                                                                  //jd = 3391.31877640;   // C#: Debug
-            jd += DayInfo.deltatT2(jd);
-            this.smc = new SunMoon(jd, JWdata.J, JWdata.W, 0); //传入力学时间(J2000.0起算)
-            this.Cal_zb.Text = smc.toText(1);
+            jd2000 += AstronomyOld.deltatT2(jd2000);
+            this.smc = new SunMoon(jd2000, curSiteCoord, 0); //传入力学时间(J2000.0起算)
+            this.Cal_zb.Text = smc.ToText(true);
 
 
             // 显示实时时间
             this.lblLocalClock.Text = nowDT.ToLocalTime().ToString();
             string rg = "";
-            double h = JWdata.SQTimeDifference;
-            string v = JWdata.DaylightInfo;
-            jd = Util.NowUTCmsSince19700101(nowDT) / 86400000d - 10957.5 + h / 24;
-            if (v.Length > 0)
+            double h = curTimeZone.Time;
+            string v = curTimeZone.Daylight;
+            jd2000 = Util.NowUTCmsSince19700101(nowDT) / 86400000d - 10957.5 + h / 24;
+            if (v.Length > 1)
             {
-                double y1 = nowTZ.Year, y2 = y1; //该时所在年份
+                double y1 = nowTZ.GerogeYear, y2 = y1; //该时所在年份
                 double m1 = double.Parse(v.Substring(0, 2)), m2 = double.Parse(v.Substring(5, 2));
                 if (m2 < m1) y2++;
                 //nnweek(y,m,n,w)求y年m月第n个星期w的jd
-                double J1 = DayInfo.GetJDFromYMNW(y1, m1, double.Parse(v.Substring(2, 1)), double.Parse(v.Substring(3, 1))) - 0.5 - Util.J2000 + (v[4] - 97) / 24d;
-                double J2 = DayInfo.GetJDFromYMNW(y2, m2, double.Parse(v.Substring(7, 1)), double.Parse(v.Substring(8, 1))) - 0.5 - Util.J2000 + (v[9] - 97) / 24d;
-                if (jd >= J1 && jd < J2) { jd += 1 / 24d; rg = "¤"; }  //夏令时
+                double J1 = AstronomyOld.GetJDFromYMNW(y1, m1, double.Parse(v.Substring(2, 1)), double.Parse(v.Substring(3, 1))) - 0.5 - JDateTime.JD_2000 + (v[4] - 97) / 24d;
+                double J2 = AstronomyOld.GetJDFromYMNW(y2, m2, double.Parse(v.Substring(7, 1)), double.Parse(v.Substring(8, 1))) - 0.5 - JDateTime.JD_2000 + (v[9] - 97) / 24d;
+                if (jd2000 >= J1 && jd2000 < J2) { jd2000 += 1 / 24d; rg = "¤"; }  //夏令时
             }
-            var dd = new JDateTime(jd + Util.J2000);
-            this.lblSQClock.Text =  dd.ToString("dd日 hh:mm:ss") + rg; //与了与clock1同步,秒数取整而不四舍五入
+            var dd = new JDateTime(jd2000 + JDateTime.JD_2000);
+            this.lblSQClock.Text =  dd.ToStringGeroge("dd日 hh:mm:ss") + rg; //与了与clock1同步,秒数取整而不四舍五入
 
         }
         #endregion
@@ -341,25 +410,23 @@ namespace TestSharpSxwnl
 
         private void btnMakeCaly_Click(object sender, EventArgs e)
         {
-            this.getNianLi(0);
-        }
-
-
-        private void getNianLi(int dy)
-        {
-            double y = Util.year2Ayear(this.Caly_y.Text);
+            double y = Util.year2Ayear(int.Parse(this.Caly_y.Text));
             if (y == -10000) return;
-            y += dy;
-            this.Caly_y.Text = Util.Ayear2year(y);
+            //y += 0;
+            this.Caly_y.Text = y.ToString();// Util.Ayear2year(y);
             if (y < -4712) { MessageBox.Show("到底了"); return; }
+
+            var llyear = new LunarYear(y);
 
             this.StrToFile("<html><META http-equiv=Content-Type content='text/html; charset=utf-8'><body>\r\n" +
                            "<span style='font-family: 宋体; font-size: 12px; line-height: 18px;'>" +
-                           lun.nianLiHTML(y) + "<p></p> \r\n" +
-                           lun.nianLi2HTML(y) + "\r\n </span></small></body></html>", this.TempPath + "ls2.htm");
+                           llyear.ToHTML(false) + "<p></p> \r\n" +
+                           llyear.ToHTML(true) + "\r\n </span></small></body></html>",
+                           this.TempPath + "ls2.htm");
 
             this.webBrowserYearCal.Navigate(this.TempPath + "ls2.htm");
         }
+
 
         #endregion 年历生成
 
@@ -438,36 +505,36 @@ namespace TestSharpSxwnl
             sb.AppendLine("<SharpSxwnl>");
 
 
-            // 各地经纬度数据
-            sb.AppendLine(@"<SxwnlData>");
-            sb.AppendLine(@"    <Data Id='JWdata_JWv' Name='各地经纬度表' Note='请参阅经纬数据压缩说明'>");
-            for (int i = 0; i < JWdata.JWv.Count; i++)
-            {
-                for (j = 0; j < JWdata.JWv[i].Count; j++)
-                {
-                    sb.Append(JWdata.JWv[i][j] + (j < JWdata.JWv[i].Count - 1 ? " " : ""));
-                }
-                if (i < JWdata.JWv.Count - 1)
-                    sb.AppendLine();
-            }
-            sb.AppendLine(@"</Data>");
-            sb.AppendLine(@"</SxwnlData>");
+            //// 各地经纬度数据
+            //sb.AppendLine(@"<SxwnlData>");
+            //sb.AppendLine(@"    <Data Id='JWdata_JWv' Name='各地经纬度表' Note='请参阅经纬数据压缩说明'>");
+            //for (int i = 0; i < JWdata.JWv.Count; i++)
+            //{
+            //    for (j = 0; j < JWdata.JWv[i].Count; j++)
+            //    {
+            //        sb.Append(JWdata.JWv[i][j] + (j < JWdata.JWv[i].Count - 1 ? " " : ""));
+            //    }
+            //    if (i < JWdata.JWv.Count - 1)
+            //        sb.AppendLine();
+            //}
+            //sb.AppendLine(@"</Data>");
+            //sb.AppendLine(@"</SxwnlData>");
 
 
-            // 时区数据
-            sb.AppendLine(@"<SxwnlData>");
-            sb.AppendLine(@"    <Data Id='JWdata_SQv' Name='时区表' Note=''>");
-            for (int i = 0; i < JWdata.SQv.Count; i++)
-            {
-                for (j = 0; j < JWdata.SQv[i].Count; j++)
-                {
-                    sb.Append(JWdata.SQv[i][j] + (j < JWdata.SQv[i].Count - 1 ? "," : ""));
-                }
-                if (i < JWdata.SQv.Count - 1)
-                    sb.AppendLine();
-            }
-            sb.AppendLine(@"</Data>");
-            sb.AppendLine(@"</SxwnlData>");
+            //// 时区数据
+            //sb.AppendLine(@"<SxwnlData>");
+            //sb.AppendLine(@"    <Data Id='JWdata_SQv' Name='时区表' Note=''>");
+            //for (int i = 0; i < JWdata.SQv.Count; i++)
+            //{
+            //    for (j = 0; j < JWdata.SQv[i].Count; j++)
+            //    {
+            //        sb.Append(JWdata.SQv[i][j] + (j < JWdata.SQv[i].Count - 1 ? "," : ""));
+            //    }
+            //    if (i < JWdata.SQv.Count - 1)
+            //        sb.AppendLine();
+            //}
+            //sb.AppendLine(@"</Data>");
+            //sb.AppendLine(@"</SxwnlData>");
 
 
             // 纪年表数据
@@ -486,29 +553,29 @@ namespace TestSharpSxwnl
             sb.AppendLine(@"</SxwnlData>");
 
 
-            // 按周规则定义的节假日(纪念日)
-            sb.AppendLine(@"<SxwnlData>");
-            sb.AppendLine(@"    <Data Id='oba_wFtv' Name='按周规则定义的节假日(纪念日)' Note='某月的第几个星期几,如第2个星期一指从月首开始顺序找到第2个“星期一”'>");
-            for (int i = 0; i < LunarData.wFtv.Count; i++)
-            {
-                sb.Append(LunarData.wFtv[i] + (i < LunarData.wFtv.Count - 1 ? "," : ""));
-            }
-            sb.AppendLine(@"</Data>");
-            sb.AppendLine(@"</SxwnlData>");
+            //// 按周规则定义的节假日(纪念日)
+            //sb.AppendLine(@"<SxwnlData>");
+            //sb.AppendLine(@"    <Data Id='oba_wFtv' Name='按周规则定义的节假日(纪念日)' Note='某月的第几个星期几,如第2个星期一指从月首开始顺序找到第2个“星期一”'>");
+            //for (int i = 0; i < LunarData.wFtv.Count; i++)
+            //{
+            //    sb.Append(LunarData.wFtv[i] + (i < LunarData.wFtv.Count - 1 ? "," : ""));
+            //}
+            //sb.AppendLine(@"</Data>");
+            //sb.AppendLine(@"</SxwnlData>");
 
 
-            // 节假日(按月列示)
-            sb.AppendLine(@"<SxwnlData>");
-            sb.AppendLine(@"    <Data Id='oba_sFtv' Name='公历各月的节日(纪念日)' Note='国历节日,#表示放假日,I表示重要节日或纪念日'>");
-            for (int i = 0; i < LunarData.sFtv.Count; i++)
-            {
-                sb.AppendLine("        <Month Id = '" + (i + 1).ToString() + "'>");
-                for (j = 0; j < LunarData.sFtv[i].Count; j++)
-                    sb.Append(LunarData.sFtv[i][j] + (j < LunarData.sFtv[i].Count - 1 ? "," : ""));
-                sb.AppendLine("</Month>");
-            }
-            sb.AppendLine(@"</Data>");
-            sb.AppendLine(@"</SxwnlData>");
+            //// 节假日(按月列示)
+            //sb.AppendLine(@"<SxwnlData>");
+            //sb.AppendLine(@"    <Data Id='oba_sFtv' Name='公历各月的节日(纪念日)' Note='国历节日,#表示放假日,I表示重要节日或纪念日'>");
+            //for (int i = 0; i < LunarData.sFtv.Count; i++)
+            //{
+            //    sb.AppendLine("        <Month Id = '" + (i + 1).ToString() + "'>");
+            //    for (j = 0; j < LunarData.sFtv[i].Count; j++)
+            //        sb.Append(LunarData.sFtv[i][j] + (j < LunarData.sFtv[i].Count - 1 ? "," : ""));
+            //    sb.AppendLine("</Month>");
+            //}
+            //sb.AppendLine(@"</Data>");
+            //sb.AppendLine(@"</SxwnlData>");
 
 
             // 农历特定节日
@@ -799,45 +866,49 @@ namespace TestSharpSxwnl
         #region 测试方法: 计算指定日期的节气信息
         private void btnTestNewMethod_Click(object sender, EventArgs e)
         {
-            DayInfo ob = new DayInfo();
-            ob.y = int.Parse(this.Cml_y.Text);    //DateTime.Now.Year;
-            ob.m = int.Parse(this.Cml_m.Text);       //DateTime.Now.Month;
-            ob.d = int.Parse(this.Cml_d.Text);       //DateTime.Now.Day;
+            JDateTime dateTime = new JDateTime(int.Parse(this.Cml_y.Text), int.Parse(this.Cml_m.Text), int.Parse(this.Cml_d.Text));
 
-            计算节气的类型 calcType;
-            if (this.chkCalcJie.Checked && this.chkCalcQi.Checked) calcType = 计算节气的类型.计算节和气;
-            else if (this.chkCalcQi.Checked) calcType = 计算节气的类型.仅计算气;
-            else calcType = 计算节气的类型.仅计算节;
-            this.lun.CalcJieQiInfo(ob, calcType);
+            //DayInfo ob = new DayInfo();
+            //ob.Year = int.Parse(this.Cml_y.Text);    //DateTime.Now.Year;
+            //ob.Month = int.Parse(this.Cml_m.Text);       //DateTime.Now.Month;
+            //ob.Day = int.Parse(this.Cml_d.Text);       //DateTime.Now.Day;
 
-            StringBuilder sb = new StringBuilder();
-            SolarTerm jieqiInfo;
-            for (int i = 0; i < 3; i++)
+            var terms = LunarYear.CalcJieQiInfo(dateTime.JulianDateFrom2000, this.chkCalcJie.Checked, this.chkCalcQi.Checked);
+            if (terms.Count < 3)
             {
-                switch (i)
-                {
-                    case 0:
-                        jieqiInfo = ob.ST;
-                        sb.AppendLine("----------所属节气信息----------");
-                        break;
-                    case 1:
-                        jieqiInfo = ob.STlast;
-                        sb.AppendLine("<---------前一节气信息----------");
-                        break;
-                    default:
-                        jieqiInfo = ob.STnext;
-                        sb.AppendLine("----------下一节气信息--------->");
-                        break;
-                }
-                sb.AppendLine("节气名称: " + jieqiInfo.Name);
-                sb.AppendLine("月建名称: " + jieqiInfo.YueJian);
-                sb.AppendLine("节或气  : " + (jieqiInfo.IsJie ? "节" : "气"));
-                sb.AppendLine("交节时间: " + jieqiInfo.Time);
-                sb.AppendLine("实历交节: " + jieqiInfo.HistoricalTime.ToString());
-                sb.AppendLine("交节差异: " + (jieqiInfo.DifferentTime ? jieqiInfo.DayDifference + " 天" : "无"));
-                sb.AppendLine();
+                // fail
+                this.txtBazi.Text = "节气信息获取失败，，，";
             }
-            this.txtBazi.Text = sb.ToString();
+            else
+            {
+                StringBuilder sb = new StringBuilder();
+
+                for (int i = 0; i < 3; i++)
+                {
+                    SolarTerm jieqiInfo = terms[i];
+                    switch (i)
+                    {
+                        case 0:
+                            sb.AppendLine("----------所属节气信息----------");
+                            break;
+                        case 1:
+                            sb.AppendLine("<---------前一节气信息----------");
+                            break;
+                        default:
+                            sb.AppendLine("----------下一节气信息--------->");
+                            break;
+                    }
+                    sb.AppendLine("节气名称: " + jieqiInfo.Name);
+                    sb.AppendLine("月建名称: " + jieqiInfo.YueJian);
+                    sb.AppendLine("节或气  : " + (jieqiInfo.IsJie ? "节" : "气"));
+                    sb.AppendLine("交节时间: " + jieqiInfo.Time);
+                    sb.AppendLine("实历交节: " + jieqiInfo.HistoricalTime.ToString());
+                    sb.AppendLine("交节差异: " + (jieqiInfo.DifferentTime ? jieqiInfo.DayDifference + " 天" : "无"));
+                    sb.AppendLine();
+                }
+                this.txtBazi.Text = sb.ToString();
+            }
+            
         }
         #endregion
 
@@ -855,8 +926,8 @@ namespace TestSharpSxwnl
                 sb.Append(diZhi.Substring(i, 1) + "月: ");
                 for (int j = 0; j < 12; j++)
                 {
-                    sb.Append(this.lun.GetRi12Jian(diZhi.Substring(i, 1), diZhi.Substring(j, 1)));
-                    sb.Append(" ");
+                    // TODO
+                    //sb.Append(this.lun.GetRi12Jian(diZhi.Substring(i, 1), diZhi.Substring(j, 1)) + " ");
                 }
                 sb.AppendLine();
             }
@@ -872,10 +943,10 @@ namespace TestSharpSxwnl
         {
             DateTime d1 = DateTime.Now;
             for (int i = 0; i < 1000; i++)
-                Ephemeris.S_aLon_t(0);
+                AstronomyOld.S_aLon_t(0);
             DateTime d2 = DateTime.Now;
             for (int i = 0; i < 1000; i++)
-                Ephemeris.S_aLon_t2(0);
+                AstronomyOld.S_aLon_t2(0);
             DateTime d3 = DateTime.Now;
 
             MessageBox.Show("高精度: " + (d2 - d1).TotalMilliseconds.ToString() + " 毫秒/千个\r" +
@@ -887,10 +958,10 @@ namespace TestSharpSxwnl
         {
             DateTime d1 = DateTime.Now;
             for (int i = 0; i < 1000; i++)
-                Ephemeris.MS_aLon_t(0);
+                AstronomyOld.MS_aLon_t(0);
             DateTime d2 = DateTime.Now;
             for (int i = 0; i < 1000; i++)
-                Ephemeris.MS_aLon_t2(0);
+                AstronomyOld.MS_aLon_t2(0);
             DateTime d3 = DateTime.Now;
 
             MessageBox.Show("高精度: " + (d2 - d1).TotalMilliseconds.ToString() + " 毫秒/千个\r" +

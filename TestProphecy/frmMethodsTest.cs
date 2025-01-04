@@ -24,15 +24,15 @@ namespace TestSharpSxwnl
 
         private void label2_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(Util.year2Ayear(-1) + "\r" + Util.year2Ayear("B2009") + "\r" +
-                            Util.year2Ayear(10000) + "\r" + Util.year2Ayear("-4713") + "\r" +
-                            Util.year2Ayear("B0"), "返回结果:");
+            //MessageBox.Show(Util.year2Ayear(-1) + "\r" + Util.year2Ayear("B2009") + "\r" +
+            //                Util.year2Ayear(10000) + "\r" + Util.year2Ayear("-4713") + "\r" +
+            //                Util.year2Ayear("B0"), "返回结果:");
         }
 
         private void label3_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(Util.Ayear2year("-1") + "\r" + Util.Ayear2year("0") + "\r" +
-                            Util.Ayear2year(2009), "返回结果:");
+            //MessageBox.Show(Util.Ayear2year("-1") + "\r" + Util.Ayear2year("0") + "\r" +
+            //                Util.Ayear2year(2009), "返回结果:");
         }
 
         private void label4_Click(object sender, EventArgs e)
@@ -81,17 +81,17 @@ namespace TestSharpSxwnl
 
         private void label11_Click(object sender, EventArgs e)
         {
-            JWdata.JWdecode("P3Tg昆明");
-            MessageBox.Show("经: " + Util.rad2str2(JWdata.J) + "\r纬: " + Util.rad2str2(JWdata.W), "返回结果:");
+            //var coord = JWdata.JWdecode("P3Tg昆明");
+            //MessageBox.Show($"经: {Util.rad2str2(coord.J)}\r纬: {Util.rad2str2(coord.W)}返回结果:");
 
         }
 
         private void label12_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("_" + Util.SUBSTRING("1", 0, 2) + "_" + "\r" +
-                            "_" + Util.SUBSTRING("1", -1, 2) + "_" + "\r" +
-                            "_" + Util.SUBSTRING("1", 0, -1) + "_" + "\r" +
-                            "_" + Util.SUBSTRING("abc", 1, 2) + "_", "返回结果(注意前后均增加了下划线):");
+            MessageBox.Show("_" + Util.SUBSTR("1", 0, 2) + "_" + "\r" +
+                            "_" + Util.SUBSTR("1", -1, 2) + "_" + "\r" +
+                            "_" + Util.SUBSTR("1", 0, -1) + "_" + "\r" +
+                            "_" + Util.SUBSTR("abc", 1, 2) + "_", "返回结果(注意前后均增加了下划线):");
         }
 
         private void label13_Click(object sender, EventArgs e)
