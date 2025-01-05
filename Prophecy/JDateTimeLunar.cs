@@ -9,6 +9,40 @@ namespace Prophecy
 {
     public partial class JDateTime
     {
+
+
+        #region Lunar Storage
+
+        private int _lunarYear;         // 以大年初一定的农历年份
+        private int _lunarYear0;        // 以立春界定的农历年份
+
+        private List<double> HS;        // 月亮合朔的儒略日值，从上一年农历十一月初一开始，视作农历的月头，大年初一中午12时是HS[2]
+        private List<double> ZQ;        // 节气中午12时的儒略日值，从冬至开始
+
+        private int _lunarMonth;                            // 月序号 即0表示十一月（子），2表示正月（寅），闰月的序号和相应平月相同。
+        private int _lunarMonthRealIndex;                   // 真实序号是为了查月信息，因为闰月和平月可能用同一个_lunarMonth值
+        private double _lunarMonth0jd;                      // 农历月的起始子时儒略日期
+        private double _lunarMonth1jd;                      // 农历下个月月头的子时儒略日期
+        private int _jieqi;                                 // 节气序号，从0=冬至开始
+        private bool _lunarIsLeapMonth;                     // 是否是闰月
+        private int _lunarMonthNumOfYear;                   // 今年事实上有多少个月？12或者13
+        private const int MAXMonthNUM = 14;                 // 最大月存储数=14
+        int[] _LunarMonthSize = new int[MAXMonthNUM];
+        int[] _LunarMonthIndex = new int[MAXMonthNUM];
+        string[] _LunarMonthName = new string[MAXMonthNUM];
+
+
+
+
+
+        private int _lunarDay;              // 农历日数，从1开始计数
+                                            //private int _lunarHour;
+
+
+
+        #endregion
+
+
         #region 农历年
 
 
@@ -79,16 +113,28 @@ namespace Prophecy
         #endregion
 
         #region 农历月
+
+
+
         /// <summary>
         /// 农历月序号，1~12，闰月和上一个月相同
         /// </summary>
-        public int LunarMonth { 
-            get
-            {
-                UpdateLunar();
-                return ((_lunarMonth + 10) % 12) + 1;
-            }
-        }
+        public int LunarMonth { get { UpdateLunar(); return ((_lunarMonth + 10) % 12) + 1; } }
+
+        /// <summary>
+        /// 农历月真实序号，0~11或0~12
+        /// </summary>
+        public int LunarMonthReal { get { UpdateLunar();return _lunarMonthRealIndex; } }
+
+        /// <summary>
+        /// 今年农历一共多少个月
+        /// </summary>
+        public int LunarMonthNumOfYear { get { UpdateLunar();return _lunarMonthNumOfYear; } }
+
+        /// <summary>
+        /// 今年农历有没有闰月
+        /// </summary>
+        public bool isLunarYearHasLeapMonth { get { UpdateLunar(); return _lunarMonthNumOfYear > 12; } }
 
         /// <summary>
         /// 农历月的月名。由于存在历法变化，所以这名字不一定是完全合规的，需要预先生成。
@@ -102,31 +148,20 @@ namespace Prophecy
             }
         }
 
-
+        /// <summary>
+        /// 是否有农历的本月闰月存在？意思是下一个月是闰本月的吗？
+        /// </summary>
+        public bool IsLunarNextMonthLeapMonth { get { UpdateLunar(); return (_lunarMonthRealIndex < _lunarMonthNumOfYear && _LunarMonthIndex[_lunarMonthRealIndex] == _LunarMonthIndex[_lunarMonthRealIndex + 1]); } }
 
         /// <summary>
         /// 是否是农历的闰月
         /// </summary>
-        public bool IsLunarLeapMonth
-        {
-            get
-            {
-                UpdateLunar();
-                return _lunarIsLeapMonth;
-            }
-        }
+        public bool IsLunarLeapMonth { get { UpdateLunar(); return _lunarIsLeapMonth; } }
 
         /// <summary>
         /// 是否是农历的大月？
         /// </summary>
-        public bool IsLunarBigMonth
-        {
-            get
-            {
-                UpdateLunar();
-                return _LunarMonthSize[_lunarMonthRealIndex] > 29;
-            }
-        }
+        public bool IsLunarBigMonth { get { UpdateLunar(); return _LunarMonthSize[_lunarMonthRealIndex] > 29; } }
 
 
         /// <summary>
@@ -153,7 +188,7 @@ namespace Prophecy
 
         #region 农历日
         /// <summary>
-        /// 农历日
+        /// 农历日，1~30
         /// </summary>
         public int LunarDay { 
             get
@@ -175,6 +210,8 @@ namespace Prophecy
             }
         }
 
+
+
         ///// <summary>
         ///// 日干支
         ///// </summary>
@@ -186,32 +223,6 @@ namespace Prophecy
         //    }
         //}
 
-
-        ///// <summary>
-        ///// 距冬至的天数
-        ///// </summary>
-        //public int toDongzhi { get { UpdateLunar(); return (int)(JulianDateFrom2000 - ZQ[0]); } }
-
-        ///// <summary>
-        ///// 距芒种的天数
-        ///// </summary>
-        //public int toMangzhong { get { UpdateLunar(); return (int)(JulianDateFrom2000 - ZQ[11]); } }
-
-        ///// <summary>
-        ///// 距夏至的天数
-        ///// </summary>
-        //public int toXiazhi { get { UpdateLunar(); return (int)(JulianDateFrom2000 - ZQ[12]); } }
-
-
-        ///// <summary>
-        ///// 距小暑的天数
-        ///// </summary>
-        //public int toXiaoshu { get { UpdateLunar(); return (int)(JulianDateFrom2000 - ZQ[13]); } }
-
-        ///// <summary>
-        ///// 距立秋的天数
-        ///// </summary>
-        //public int toLiqiu { get { UpdateLunar(); return (int)(JulianDateFrom2000 - ZQ[15]); } }
 
 
 
@@ -314,39 +325,33 @@ namespace Prophecy
             }
         }
 
-
-
-        #endregion
-
-
-
-        #region Lunar Storage
-
-        private int _lunarYear; 
-        private int _lunarYear0;
-        private List<double> HS;
-        private List<double> ZQ;
         /// <summary>
-        /// 农历月的序号，即0表示十一月（子），2表示正月（寅），闰月的序号和相应平月相同。
+        /// 距离特定节气过了几天？
         /// </summary>
-        private int _lunarMonth;
-        private int _lunarMonthRealIndex;   // 真实序号是为了查月信息，因为闰月和平月可能用同一个_lunarMonth值
-        private int _jieqi;
-        private bool _lunarIsLeapMonth;
-        const int MAXMonthNUM = 14;
-        int[] _LunarMonthSize = new int[MAXMonthNUM];
-        int[] _LunarMonthIndex = new int[MAXMonthNUM];
-        string[] _LunarMonthName = new string[MAXMonthNUM];
+        /// <param name="jq"></param>
+        /// <returns></returns>
+        public int LunarToJieqiDays(JieQi jq)
+        {
+            UpdateLunar();
+            return (int)(JulianDate - GetJulianDateOfLunarHour0(ZQ[(int)jq]));
+        }
 
 
+        /// <summary>
+        /// 节气当天 子时的儒略日期
+        /// </summary>
+        /// <param name="jq"></param>
+        /// <returns></returns>
+        public double JieqiJulianDate(JieQi jq)
+        {
+            UpdateLunar();
+            return GetJulianDateOfLunarHour0(ZQ[(int)jq]);
+        }
 
-
-        private int _lunarDay;
-        //private int _lunarHour;
-        
 
 
         #endregion
+
 
 
 
@@ -369,13 +374,10 @@ namespace Prophecy
                 //ZQ.AddRange(Astronomy.Astronomy.AdjustedSolarTermsJd(GerogeYear, 0, 24));
 
                 HS = new List<double>();
-
                 // 今年"首朔"的日月黄经差,是农历十一月初一
                 var winter = AstronomyOld.calShuo(ZQ[0]);
-                // 求较靠近冬至的朔日
+                // 求较靠近冬至的朔日，十一月要把冬至包括在月内
                 if (winter > ZQ[0]) winter -= 29.53;
-
-
                 // 该年所有朔,包含14个月的始末
                 for (int i = 0; i < 15; i++)
                 {
@@ -405,47 +407,9 @@ namespace Prophecy
                 //var D = ZQ[3] + (JulianDate < ZQ[3] ? -365 : 0) + 365.25 * 16 - 35; //以立春为界定纪年
                 //_lunarYear0 = (int)(Math.Floor(D / 365.2422 + 0.5)); //农历纪年(10进制,1984年起算)
 
-                // 以下几行以正月初一定年首
+                // 以下几行以正月初一定年首，日子如果在十一月、十二月里，算作农历的前一年
                 if (_lunarMonthRealIndex < 2) _lunarYear = LunarMatchedGerogeYear - 1;
                 else _lunarYear = LunarMatchedGerogeYear;
-                //D = HS[2];     // 一般第3个月为春节
-                //for (int j = 0; j < 14; j++)
-                //{
-                //    // 找春节
-                //    if (_LunarMonthName[j] != "正") continue;
-                //    D = HS[j];
-                //    if (JulianDate < D) { D -= 365; break; }   // 无需再找下一个正月
-                //}
-                //D = D + 5810;    // 计算该年春节与1984年平均春节(立春附近)相差天数估计
-                //_lunarYear = (int)(Math.Floor(D / 365.2422 + 0.5));   // 农历纪年(10进制,1984年起算)
-
-
-
-
-                //// 农历年序号，应在农历冬至开始至下一个冬至日为止
-                //_lunarYear = Year;
-                //double winterSolsticeStart = _trueNMST.ZQ[0]; // 获取当前农历年初的冬至节气日期
-                //double winterSolsticeEnd = _trueNMST.ZQ[24];  // 获取上一年年底的冬至节气日期
-                //if (_julianDate < winterSolsticeStart) _lunarYear -= 1;
-                //else if (_julianDate >= winterSolsticeEnd) _lunarYear += 1;
-
-
-                //// 确定农历月
-                //int lunarMonthIndex = (int)Math.Floor((JulianDate - _trueNMST.HS[0]) / 30);
-                //if (lunarMonthIndex < 13 && _trueNMST.HS[lunarMonthIndex + 1] <= JulianDate) lunarMonthIndex++;
-                //int lunarDayIndex = (int)(JulianDate - _trueNMST.HS[lunarMonthIndex]);
-                //int lunarHourIndex = (int)(((_julianDate - Math.Floor(_julianDate)) * 24 + 25) / 2) % 12;
-
-                //// 计算农历信息
-                ////string lunarDayName = Data.LunarData.rmc[(int)(JulianDate - trueNMST.HS[lunarMonthIndex])];
-                ////string lunarMonthName = trueNMST.LunarMonthName[lunarMonthIndex];
-                //// 当前是否处于农历闰月里
-                //bool isLeapMonth = (_trueNMST.LeapMonth != 0 && _trueNMST.LeapMonth == lunarMonthIndex);
-
-                //// 计算干支纪年和生肖
-                ////double yearOffset = Year - 1984 + 9000;
-                ////string ganZhiYear = Data.LunarData.Gan[(int)(yearOffset % 10)] + Data.LunarData.Zhi[(int)(yearOffset % 12)];
-                ////string shx = Data.LunarData.ShX[(int)(yeaOffset % 12)];
 
 
                 _needUpdateLunar = false;
@@ -525,7 +489,13 @@ namespace Prophecy
                 }
 
             }
-            //realMonthNUM = LeapMonth > 0 ? 13 : 12;
+            _lunarMonthNumOfYear = LeapMonth > 0 ? 13 : 12;
+            _lunarMonth0jd = 0;
+            _lunarMonth1jd = 0;
+            _lunarMonthRealIndex = 0;
+            _lunarMonth = 0;
+            _lunarIsLeapMonth = false;
+            _lunarDay = 1;
             for (int i = 1; i < MAXMonthNUM; i++)
             {
                 
@@ -533,6 +503,8 @@ namespace Prophecy
                 var month0Next = GetJulianDateOfLunarHour0(HS[i]);
                 if (JulianDate >= month0 && JulianDate < month0Next)
                 {
+                    _lunarMonth0jd = month0;
+                    _lunarMonth1jd = month0Next;
                     _lunarMonthRealIndex = i - 1;
                     _lunarMonth = _LunarMonthIndex[_lunarMonthRealIndex];
                     
@@ -551,13 +523,7 @@ namespace Prophecy
                 //        i + 1 == realMonthNUM
                 //    ));
             }
-
-
             // Not Match??
-            _lunarMonthRealIndex = 0;
-            _lunarMonth = 0;
-            _lunarIsLeapMonth = false;
-            _lunarDay = 1;
         }
 
 

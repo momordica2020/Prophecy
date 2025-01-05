@@ -17,9 +17,15 @@ namespace Prophecy
         #endregion
 
         /// <summary>
-        /// 公历年
+        /// 公历年，0表示公元前1年。
         /// </summary>
         public int GerogeYear { get { UpdateGerogeDate(); return _gyear; } }
+
+
+        /// <summary>
+        /// 公历年，并用-1表示公元前1年，用1表示公元1年。这个数值永不为0
+        /// </summary>
+        public int GerogeYearMix { get { UpdateGerogeDate(); return _gyear; } }
 
         /// <summary>
         /// 公历月
@@ -72,7 +78,7 @@ namespace Prophecy
         public int GerogeWeek => (int)GerogeDayInWeek;
 
         /// <summary>
-        /// 在本月中的周序号
+        /// 在本月中的周序号,1~5
         /// </summary>
         public int GerogeWeekOfMonth
         {

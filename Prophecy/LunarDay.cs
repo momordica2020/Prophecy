@@ -85,8 +85,8 @@ namespace Prophecy
         /// <returns></returns>
         public List<Feast> Feasts(int level = -1)
         {
-            if(level < 0) return FeastStructs.MatchFeasts(jDate).ToList();
-            else return FeastStructs.MatchFeasts(jDate).Where(f=>f.Level == level).ToList(); 
+            if(level < 0) return FeastInfo.MatchFeasts(jDate).ToList();
+            else return FeastInfo.MatchFeasts(jDate).Where(f=>f.Level == level).ToList(); 
         }
 
 

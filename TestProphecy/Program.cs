@@ -15,8 +15,8 @@ namespace TestProphecy
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new frmMainTest());
-            //Application.Run(new frmCalendarTest());
+            //Application.Run(new frmMainTest());
+            Application.Run(new frmCalendarTest());
         }
     }
 }

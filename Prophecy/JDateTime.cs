@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Prophecy
 {
@@ -307,8 +308,8 @@ namespace Prophecy
                 .Replace("yyyy", ry.ToString("D4")).Replace("yy", ry.ToString("D2")).Replace("y", ry.ToString("D"))
                 .Replace("dd", d.ToString("D2")).Replace("d", d.ToString("D"))
                 .Replace("W", WeekDayName[(w%7 + 7) % 7].ToString()).Replace("w", w.ToString("D"))
-                .Replace("HH", h.ToString("D2")).Replace("hh", (h%12).ToString("D2"))
-                .Replace("H", h.ToString("D")).Replace("h", (h % 12).ToString("D"))
+                .Replace("HH", h.ToString("D2")).Replace("hh", $"{(h % 12).ToString("D2")}{(h < 12 ? "AM" : "PM")}")
+                .Replace("H", h.ToString("D")).Replace("h", $"{(h % 12).ToString("D")}{(h<12?"AM":"PM")}")
                 .Replace("mm", m.ToString("D2")).Replace("m", m.ToString("D"))
                 .Replace("ss", s.ToString("D2")).Replace("s", s.ToString("D"));
 
@@ -322,10 +323,33 @@ namespace Prophecy
         /// </summary>
         /// <param name="s"></param>
         /// <returns></returns>
-        public static JDateTime Parse(string s)
+        public static JDateTime Parse(string input)
         {
-            DateTime parsed = DateTime.Parse(s, CultureInfo.InvariantCulture);
-            return new JDateTime(parsed.Year, parsed.Month, parsed.Day, parsed.Hour, parsed.Minute, parsed.Second);
+            // 定义正则表达式
+            string pattern = @"(?:(?<year>-?\d+)年)?\s*(?:(?<month>\d+)月)?\s*(?:(?<day>\d+)日)?\s*(?:(?<hour>\d+):(?<minute>\d+)(?::(?<second>\d+))?)?";
+            Regex regex = new Regex(pattern);
+
+            // 获取当前年份
+            int currentYear = DateTime.Now.Year;
+            int currentMonth = DateTime.Now.Month;
+            int currentDay = DateTime.Now.Day;
+            int currentHour = DateTime.Now.Hour;
+            int currentMinute = DateTime.Now.Minute;
+            int currentSecond = DateTime.Now.Second;
+
+            // 匹配输入字符串
+            Match match = regex.Match(input);
+
+            // 提取匹配结果
+            int year = match.Groups["year"].Success ? int.Parse(match.Groups["year"].Value) : currentYear;
+            if (year <= 0) year += 1;
+            int month = match.Groups["month"].Success ? int.Parse(match.Groups["month"].Value) : currentMonth;
+            int day = match.Groups["day"].Success ? int.Parse(match.Groups["day"].Value) : currentDay;
+            int hour = match.Groups["hour"].Success ? int.Parse(match.Groups["hour"].Value) : currentHour;
+            int minute = match.Groups["minute"].Success ? int.Parse(match.Groups["minute"].Value) : currentMinute;
+            int second = match.Groups["second"].Success ? int.Parse(match.Groups["second"].Value) : currentSecond;
+
+            return new JDateTime(year, month, day, hour, minute, second);
         }
         public static JDateTime ParseExact(string s, string format, IFormatProvider provider)
         {

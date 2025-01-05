@@ -567,6 +567,7 @@ namespace Prophecy
                     break;
                 }
             }
+            res += tempNumber;
 
             return res;
         }

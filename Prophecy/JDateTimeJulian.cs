@@ -60,6 +60,29 @@ namespace Prophecy
 
 
         /// <summary>
+        /// 今天0时的儒略日值
+        /// </summary>
+        public double JulianDate0
+        {
+            get
+            {
+                return new JDateTime(GerogeYear, GerogeMonth, GerogeDay, 0, 0, 0).JulianDate;
+            }
+        }
+
+        /// <summary>
+        /// 今天子时的儒略日值
+        /// </summary>
+        public double JulianDateLunar0
+        {
+            get
+            {
+                return JulianDate0 - 1d / 24;
+            }
+        }
+
+
+        /// <summary>
         /// 私有方法 - 将日期转换为儒略日
         /// </summary>
         /// <param name="year"></param>
@@ -235,6 +258,8 @@ namespace Prophecy
 
             return Math.Floor(365.25 * (year + 4716)) + Math.Floor(30.6001 * (month + 1)) + day + B - 1524.5;
         }
+
+
 
         #endregion
 

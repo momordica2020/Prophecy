@@ -147,7 +147,7 @@ namespace Prophecy
             jd0 = year0date.JulianDate;
             // 所属公历年对应的农历干支纪年
             //this.ganZhi = new GanZhi(year0date.LunarYearJiazi);
-            this.nianHao = ChaodaiInfo.getChaodaiDesc(year0date.LunarYear, year0date.LunarMonth);
+            this.nianHao = ChaodaiInfo.getChaodaiDesc(year0date);
 
 
 

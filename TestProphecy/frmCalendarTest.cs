@@ -34,43 +34,52 @@ namespace TestProphecy
         {
             textBox1.Clear();
             editable = false;
-            JDateTime dt;
+            JDateTime jdt;
             if (jd)
             {
-                dt = new JDateTime((double)(nJD.Value));
+                jdt = new JDateTime((double)(nJD.Value));
             }
             else
             {
-                dt = new JDateTime((int)nYear.Value, (int)nMonth.Value, (int)nDay.Value, (int)nHour.Value, (int)nMinute.Value, (int)nSecond.Value);
+                jdt = new JDateTime((int)nYear.Value, (int)nMonth.Value, (int)nDay.Value, (int)nHour.Value, (int)nMinute.Value, (int)nSecond.Value);
             }
 
 
-            var r = dt.LunarFourPillars;
+            var r = jdt.LunarFourPillars;
             WriteLine($"四柱（农历）：{r.Year} {r.Month} {r.Day} {r.Hour}");
-            var r0 = dt.LunarFourPillars0;
+            var r0 = jdt.LunarFourPillars0;
             WriteLine($"四柱（节气）：{r0.Year} {r0.Month} {r0.Day} {r0.Hour}");
-            WriteLine($"儒略日：{dt.JulianDate}   {dt.JulianDateFrom2000}");
-            WriteLine($"公历：{dt.ToStringGeroge("yyyy年MM月dd日 星期W hh:mm:ss")}");
+            WriteLine($"儒略日：{jdt.JulianDate}   {jdt.JulianDateFrom2000}");
+            WriteLine($"公历：{jdt.ToStringGeroge("yyyy年MM月dd日 星期W HH:mm:ss")}");
 
-            WriteLine($"回历：{dt.ToStringIslamic("yyyy年MM月dd日")}");
-            WriteLine($"农历：{dt.ToStringLunar("yyyy年MM月dd日 h时m刻")}");
-            WriteLine($"农历：{dt.LunarFourPillars.Year.ToString()}{dt.LunarShengxiao.ToString()}年 {(dt.IsLunarLeapMonth ? "闰" : "")}{dt.LunarMonthName}月{(dt.IsLunarBigMonth?"大":"小")} {dt.LunarDayName}日 {dt.LunarShiKe} {dt.Jieqi.ToString()}已过{dt.JieqiBegin}天{(dt.isTodayJieqi?"★":"")}");
-            WriteLine($"{ChaodaiInfo.getChaodaiDesc(dt.LunarYear, dt.LunarMonth)}");
+            WriteLine($"回历：{jdt.ToStringIslamic("yyyy年MM月dd日")}");
+            WriteLine($"农历：{jdt.ToStringLunar("yyyy年MM月dd日 h时m刻")}");
+            WriteLine($"农历：{jdt.LunarFourPillars.Year.ToString()}{jdt.LunarShengxiao.ToString()}年 {(jdt.IsLunarLeapMonth ? "闰" : "")}{jdt.LunarMonthName}月{(jdt.IsLunarBigMonth?"大":"小")} {jdt.LunarDayName}日 {jdt.LunarShiKe} {jdt.Jieqi.ToString()}已过{jdt.JieqiBegin}天{(jdt.isTodayJieqi?"★":"")}");
+            WriteLine($"{jdt.FeastInfo}");
+            WriteLine($"{ChaodaiInfo.getChaodaiDesc(jdt)}");
+            var c = jdt.FeastComing();
+            WriteLine($"");
+            foreach (var cc in c)
+            {
+                WriteLine($"再过{(int)(cc.date.JulianDate0 - jdt.JulianDate + 1)}天：{cc.feast.ToString()}");
+            }
 
-            WriteLine(dt.LunarTest());
+
+
+            //WriteLine(jdt.LunarTest());
             if (jd)
             {
-                nYear.Value = dt.GerogeYear;
-                nMonth.Value = dt.GerogeMonth;
-                nDay.Value = dt.GerogeDay;
-                nHour.Value = dt.Hour;
-                nMinute.Value = dt.Minute;
-                nSecond.Value = dt.Second;
+                nYear.Value = jdt.GerogeYear;
+                nMonth.Value = jdt.GerogeMonth;
+                nDay.Value = jdt.GerogeDay;
+                nHour.Value = jdt.Hour;
+                nMinute.Value = jdt.Minute;
+                nSecond.Value = jdt.Second;
 
             }
             else
             {
-                nJD.Value = (decimal)dt.JulianDate;
+                nJD.Value = (decimal)jdt.JulianDate;
             }
 
             

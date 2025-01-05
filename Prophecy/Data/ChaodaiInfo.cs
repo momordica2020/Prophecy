@@ -21,7 +21,9 @@ namespace Prophecy.Data
         public string EmperorTitle;
         public string EmperorName;
 
-        public ChaodaiItem(string name, double beginYear, double length, string dynasty, string emperorTitle, string emperorName)
+        public bool IsLunar = true;
+
+        public ChaodaiItem(string name, double beginYear, double length, string dynasty, string emperorTitle, string emperorName, bool isLunar = true)
         {
             Name = name;
             BeginYear = (int)beginYear;  // 整数部分是农历年，小数部分是起始的月份/100。1月0.01,12月0.12
@@ -42,6 +44,7 @@ namespace Prophecy.Data
 
             EmperorTitle = emperorTitle;
             EmperorName = emperorName;
+            IsLunar = isLunar;
         }
 
 
@@ -51,35 +54,40 @@ namespace Prophecy.Data
 
     public class ChaodaiInfo
     {
-     
-        public static ChaodaiItem[] getChaodais(int lunarYear, int lunarMonth)
+
+        public static ChaodaiItem[] getChaodais(JDateTime dt)
         {
-            return Items.Where( c => 
-                (lunarYear > c.BeginYear
-                || lunarYear==c.BeginYear && lunarMonth >= c.BeginMonth)
-                && 
-                (lunarYear < c.BeginYear + c.LengthYear
-                || lunarYear == c.BeginYear + c.LengthYear && lunarMonth < c.EndMonth)
+            return Items.Where(c =>  (
+                c.IsLunar && (
+                (dt.LunarYear > c.BeginYear  || dt.LunarYear == c.BeginYear && dt.LunarMonth >= c.BeginMonth)
+                &&
+                (dt.LunarYear < c.BeginYear + c.LengthYear || dt.LunarYear == c.BeginYear + c.LengthYear && dt.LunarMonth < c.EndMonth))
+                || ( !c.IsLunar &&(
+                (dt.GerogeYear > c.BeginYear || dt.GerogeYear == c.BeginYear && dt.GerogeMonth >= c.BeginMonth)
+                &&
+                (dt.GerogeYear < c.BeginYear + c.LengthYear || dt.GerogeYear == c.BeginYear + c.LengthYear && dt.GerogeMonth < c.EndMonth))
+                ))   
             ).ToArray();
         }
 
-        public static string getChaodaiDesc(int lunarYear, int lunarMonth)
+        public static string getChaodaiDesc(JDateTime jdt)
         {
             string res = "";
-            var c = getChaodais(lunarYear, lunarMonth);
+            var c = getChaodais(jdt);
             if (c.Length>0)
             {
                 foreach(var cc in c)
                 {
-                    int last = lunarYear - cc.BeginYear + 1;
+                    int last = (cc.IsLunar ? jdt.LunarYear : jdt.GerogeYear) - cc.BeginYear + 1;
                     string lastdesc = last == 1 ? "元" : Util.NumberToHans(last);
-                    res += $"{cc.DynastyName}{cc.Name}{lastdesc}年,";
+                    res += $"{cc.DynastyName}{cc.Name}{lastdesc}年" +
+                        $"({(cc.DynastyPre.Count>0?string.Join(" ",cc.DynastyPre)+$"{cc.DynastyName}":"")},{cc.EmperorTitle} {cc.EmperorName}),";
                 }
 
             }
             else
             {
-                res = $"{Util.NumberToHansOneByOne(lunarYear)}年";
+                res = $"{Util.NumberToHansOneByOne(jdt.GerogeYear)}年";
             }
 
             return res.TrimEnd(',');
@@ -603,7 +611,7 @@ namespace Prophecy.Data
                 new("天佑", 905, 3, "唐", "昭宣帝", "李祝"),
                 new("开平", 907, 5, "五代-后-梁", "太祖", "朱温"),
                 new("乾化", 911, 2, "五代-后-梁", "太祖", "朱温"),
-                new("凤历", 913, 1, "五代-后-梁", "庶人", "朱友圭"),
+                new("凤历", 913, 1, "五代-后-梁", "", "朱友圭"),
                 new("乾化", 913, 3, "五代-后-梁", "末帝", "朱友贞"),
                 new("贞明", 915, 7, "五代-后-梁", "末帝", "朱友贞"),
                 new("龙德", 921, 3, "五代-后-梁", "末帝", "朱友贞"),
@@ -721,9 +729,9 @@ namespace Prophecy.Data
                 new("同治", 1862, 13, "清", "穆宗", "爱新觉罗载淳"),
                 new("光绪", 1875, 34, "清", "德宗", "爱新觉罗载湉"),
                 new("宣统", 1909, 3, "清", "逊帝", "爱新觉罗溥仪"),
-                new("民国", 1912, TodayGerogeYear - 1911, "", "", ""),
-                new("建国", 1949, TodayGerogeYear - 1948, "中华人民共和国", "", ""),
 
+                new("民国", 1912, TodayGerogeYear - 1911, "", "", "", false),
+                new("建国", 1949, TodayGerogeYear - 1948, "中华人民共和国", "", "", false),
             };
 
 
