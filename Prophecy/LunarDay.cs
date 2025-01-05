@@ -97,7 +97,7 @@ namespace Prophecy
         {
             get
             {
-                return  WeekNum==5 || WeekNum==6 || Feasts().Where(f=>f.isHolidy==true).Any();
+                return  WeekNum==6 || WeekNum==0 || Feasts().Where(f=>f.isHolidy==true).Any();
             }
         }
 
@@ -132,7 +132,7 @@ namespace Prophecy
                 w = Math.Floor((w - 0.13) / (Math.PI * 2) * 24) * (Math.PI * 2) / 24;
 
                 //var D = Math.Floor(Data.LunarData.qi_accurate(w) + 0.5);
-                _jieqiBegin = Math.Floor(Data.LunarData.qi_accurate(w) + 0.5);
+                _jieqiBegin = Math.Floor(AstronomyOld.qi_accurate(w) + 0.5);
                 var xn = (int)Math.Floor(w / (Math.PI * 2) * 24 + 24000006.01) % 24;
 
                 return (JieQi)(xn);

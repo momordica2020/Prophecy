@@ -147,7 +147,7 @@ namespace Prophecy
             jd0 = year0date.JulianDate;
             // 所属公历年对应的农历干支纪年
             //this.ganZhi = new GanZhi(year0date.LunarYearJiazi);
-            this.nianHao = Data.LunarData.getNH(year0date.LunarYear0);  //TODO 年号和月日也有关
+            this.nianHao = ChaodaiInfo.getChaodaiDesc(year0date.LunarYear, year0date.LunarMonth);
 
 
 
@@ -281,10 +281,10 @@ namespace Prophecy
                 if (Month[i].isLeap) sb.Append("闰");  else sb.Append("·");
                 sb.Append($"{Month[i].Name}月{(Month[i].isBig ? "大" : "小")} {(useGanzhi?$"{(Tiangan)((int)((HS[i] + 9) % 10))}{(Dizhi)((int)((HS[i] + 1) % 12))}":"")} {new JDateTime(Month[i].month0JDate).ToStringGeroge("MM月dd日")}");
 
-                var vjd = LunarData.so_accurate2(HS[i] - JDateTime.JD_2000);
+                var vjd = AstronomyOld.so_accurate2(HS[i]);
                 var s2 = $"({new JDateTime(vjd, true).ToStringGeroge("MM月dd日")})";    // C#: 取每月朔的时间(即初一)
                 // 精朔和粗朔有区别，加红标记
-                if (Math.Floor(vjd + 0.5) != HS[i] - JDateTime.JD_2000) s2 = $"<font color=red>{s2}</font>";
+                if (Math.Floor(vjd + 0.5) != HS[i]) s2 = $"<font color=red>{s2}</font>";
                 //v=(v+0.5+LunarHelper.J2000)%1; if(v>0.5) v=1-v; if(v<8/1440) s2 = "<u>"+s2+"</u>"; //对靠近0点的加注
                 sb.Append(s2);
 
@@ -297,7 +297,7 @@ namespace Prophecy
 
                     if (qi < HS[i] || qi >= HS[i + 1]) continue;
 
-                    var v = LunarData.qi_accurate2(qi);
+                    var v = AstronomyOld.qi_accurate2(qi);
 
                     if (useGanzhi)
                     {
@@ -448,7 +448,7 @@ namespace Prophecy
 
                 qi = JQList[j];
 
-                v = Data.LunarData.qi_accurate2(qi);
+                v = AstronomyOld.qi_accurate2(qi);
 
                 jieQiPos = j % 24 + 20;      // 与 obb.jqmc 对应, "霜降"距首位"冬至"的距离为 20
                 if (jieQiPos >= 24) jieQiPos -= 24;
@@ -458,7 +458,7 @@ namespace Prophecy
                     Time = new JDateTime(v, true),
                     IsJie = true,
                     Name = ((JieQi)(jieQiPos)).ToString(),
-                    YueJian = LunarData.JieQiYueJian[jieQiPos],
+                    //YueJian = LunarData.JieQiYueJian[jieQiPos],
                     JDTime = v + JDateTime.JD_2000,
                     HistoricalTime = new JDateTime(qi, true),
                     HistoricalJDTime = qi + JDateTime.JD_2000,

@@ -189,34 +189,9 @@ namespace Prophecy
         /// <param name="format">回历格式化字符串，例如 "yyyy-MM-dd HH:mm:ss"</param>
         /// <param name="formatProvider">格式化提供程序</param>
         /// <returns>格式化的回历日期字符串</returns>
-        public string ToStringIslamic(string format, IFormatProvider formatProvider = null)
+        public string ToStringIslamic(string format)
         {
-            // 如果未提供格式化器，使用默认的文化信息
-            var culture = formatProvider as CultureInfo ?? CultureInfo.InvariantCulture;
-
-
-            // 构造虚拟的 DateTime 对象来格式化时间部分
-            DateTime fakeDateTime = new DateTime(
-                Math.Abs(IslamicYear),
-                IslamicMonth,
-                IslamicDay,
-                Hour,
-                Minute,
-                Second,
-                Millisecond
-            );
-
-            // 使用格式化器格式化时间部分
-            string result = fakeDateTime.ToString(format, culture);
-
-            // 如果是公元前的年份，手动替换年份部分
-            if (IslamicYear <= 0)
-            {
-                string yearString = $"-{Math.Abs(IslamicYear):D4}";
-                result = result.Replace(fakeDateTime.Year.ToString("D4"), yearString);
-            }
-
-            return result;
+            return DealTimeToStringTemplate(format, IslamicYear, IslamicMonth, IslamicDay,GerogeWeek, Hour, Minute, Second);
         }
 
 

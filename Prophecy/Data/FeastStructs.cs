@@ -149,7 +149,153 @@ namespace Prophecy
         }
 
 
-      
+
+
+        ///// <summary>
+        ///// 取年号
+        ///// </summary>
+        ///// <param name="y">公历年(天文纪年, 如 -1 表示常规纪年的"公元前2年")</param>
+        ///// <returns></returns>
+        //public static string getNH(int y)
+        //{
+        //    int i, j;
+        //    string c, s = "";
+        //    JnbArrayList ob = JNB;
+        //    for (i = 0; i < ob.Count; i += 7)
+        //    {
+        //        j = (int)ob[i];
+        //        if (y < j || y >= j + (int)ob[i + 1]) continue;
+        //        c = (string)ob[i + 6] + (y - j + 1 + (int)ob[i + 2]) + "年";   // 年号及年次
+        //        s += (s.Length > 0 ? ";" : "") + "[" + ob[i + 3] + "]" + ob[i + 4] + " " + ob[i + 5] + " " + c;   // i为年号元年,i+3朝代,i+4朝号,i+5皇帝,i+6年号
+        //    }
+        //    return s;
+        //}
+
+
+        ///// <summary>
+        ///// 计算农历节日
+        ///// </summary>
+        ///// <param name="u"></param>
+        //public static void getDayNameL(DayInfo u)
+        //{
+        //    int i;
+
+        //    //// 按农历日期查找重点节假日
+        //    //string d = u.Lmc + (u.Lmc.Length < 2 ? "月" : "") + u.Ldc;
+        //    //if (u.Lleap != "闰")
+        //    //{
+        //    //    for (i = 0; i < LunarFeasts.Count; i++)     // C#: 查表, 查找农历节假日
+        //    //    {
+        //    //        if (d == LunarFeasts[i].Lmc)
+        //    //        {
+        //    //            r.A += LunarFeasts[i].A;
+        //    //            r.B += LunarFeasts[i].B;
+        //    //            r.C += LunarFeasts[i].C;
+        //    //            r.Fjia = LunarFeasts[i].Fjia;
+        //    //        }
+        //    //    }
+        //    //}
+        //    //if (u.Lmc2 == "正")
+        //    //{
+        //    //    // 最后一月
+        //    //    if (d == "十二三十" && u.Ldn == 30) { r.A += "除夕 "; r.Fjia = 1; }
+        //    //    if (d == "十二廿九" && u.Ldn == 29) { r.A += "除夕 "; r.Fjia = 1; }
+        //    //    if (d == "十二廿三") r.B += "小年 ";
+        //    //}
+        //    //if (u.Ljq.Length > 0)
+        //    //{
+        //    //    for (i = 0; i < JieQiFeasts.Count; i++)    // C#: 查找是否有放假的节气
+        //    //    {
+        //    //        if (u.Ljq == JieQiFeasts[i])               // C#: 匹配
+        //    //            break;
+        //    //    }
+        //    //    if (i < JieQiFeasts.Count) { r.A += u.Ljq + " "; r.Fjia = 1; }
+        //    //    else r.B += u.Ljq + " ";
+        //    //}
+
+        //    //// 农历杂节
+        //    //if (u.cur_dz >= 0 && u.cur_dz < 81)
+        //    //{ // 数九
+        //    //    int nineIndex = (int)Math.Floor(u.cur_dz / 9) + 1;
+        //    //    if (u.cur_dz % 9 == 0) r.B += "『" + nineIndex + "九』 ";
+        //    //    else r.C += nineIndex + "九第" + (u.cur_dz % 9 + 1) + "天 ";
+        //    //}
+
+        //    //string w = u.Lday2.GanStr;// .Substring(0, 1);
+        //    //string w2 = u.Lday2.ZhiStr;// (1, 1);
+        //    //if (u.cur_xz > 20 && u.cur_xz <= 30 && w == "庚") r.B += "初伏 ";
+        //    //if (u.cur_xz > 30 && u.cur_xz <= 40 && w == "庚") r.B += "中伏 ";
+        //    //if (u.cur_lq > 0 && u.cur_lq <= 10 && w == "庚") r.B += "末伏 ";
+        //    //if (u.cur_mz > 0 && u.cur_mz <= 10 && w == "丙") r.B += "入梅 ";
+        //    //if (u.cur_xs > 0 && u.cur_xs <= 12 && w2 == "未") r.B += "出梅 ";
+        //}
+
+
+
+
+        ///// <summary>
+        ///// 命理八字计算, 并保存到日对象 ob 中
+        ///// </summary>
+        ///// <param name="jd">格林尼治UT(J2000起算)</param>
+        ///// <param name="J">本地经度</param>
+        ///// <param name="ob">日对象</param>
+        ///// <param name="southernHemisphere">南半球的标志</param>
+        //public static (double jdTrue, GanZhi Y, GanZhi M, GanZhi D, GanZhi H) mingLiBaZi(double jd, double J, DayInfo ob, BaZiTypeS baziTypeS)
+        //{
+        //    double _jdTrue;
+        //    GanZhi zY, zM, zD, zH;
+
+
+        //    double jd2 = jd + Util.deltatT2(jd);      // 力学时
+        //    double w = Ephemeris.S_aLon(jd2 / 36525, -1);  // 此刻太阳视黄经
+        //    double k = Math.Floor((w / (Math.PI * 2) * 360 + 45 + 15 * 360) / 30);   // 1984年立春起算的节气数(不含中气)
+        //    jd += Ephemeris.shiCha2(jd2 / 36525) - J / Math.PI / 2;        // 本地真太阳时(使用低精度算法计算时差)
+        //    //jd += 0 - J / Math.PI / 2;     // 将格林尼治UT(J2000起算), 转换为本地时间, 不必考虑真太阳与平太阳时之间的时差
+        //    _jdTrue = jd;
+        //    //var _jdTrue = new JDateTime(jd,true); // DayJ.timeStr(jd);
+
+
+
+        //    jd += 13d / 24d;   // 转为前一日23点起算(原jd为本日中午12点起算)   // C#: 注意数据类型
+        //    double D = Math.Floor(jd), SC = Math.Floor((jd - D) * 12);   // 日数与时辰
+
+        //    var v = Math.Floor(k / 12 + 6000000);
+        //    zY = new GanZhi(v);
+        //    v = k + 2 + 60000000; 
+        //    zM= new GanZhi(v);
+
+        //    // 计算南半球八字(仅纪月不同)
+        //    switch (baziTypeS)
+        //    {
+        //        case BaZiTypeS.TCDC:
+        //            zM = new GanZhi(v + 4, v + 6);
+        //            break;
+
+        //        case BaZiTypeS.TKDC:
+        //            zM = new GanZhi(v + 6, v + 6);
+        //            break;
+
+        //        case BaZiTypeS.TTDC:
+        //            zM = new GanZhi(v, v + 6);
+        //            break;
+
+        //        default:
+        //            break;
+        //    }
+
+
+        //    v = D - 6 + 9000000; 
+        //    zD = new GanZhi(v); 
+        //    v = (D - 1) * 12 + 90000000 + SC; 
+        //    zH = new GanZhi(v);
+
+        //    //v -= SC;
+
+
+        //    return (_jdTrue, zY, zM, zD, zH);
+        //}
+
+
 
 
         /// <summary>

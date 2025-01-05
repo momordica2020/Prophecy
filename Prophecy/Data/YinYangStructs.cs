@@ -184,7 +184,7 @@ namespace Prophecy
 
         public GanZhi(double index = 0)
         {
-            if (index < 0) index = (Math.Abs(index / 60) + 1) * 60 + index;
+            if (index < 0) index = (Math.Abs((int)(index / 60)) + 1) * 60 + index;
             _gan = (Tiangan)(index % 10);
             _zhi = (Dizhi)(index % 12);
         }

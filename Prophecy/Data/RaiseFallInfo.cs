@@ -6,10 +6,6 @@ using Prophecy.Astronomy;
 
 namespace Prophecy.Data
 {
-
-
-
-
     /// <summary>
     /// 日月的升中天降,不考虑气温和气压的影响
     /// </summary>

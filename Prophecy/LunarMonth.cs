@@ -431,7 +431,7 @@ namespace Prophecy
                     if (ob.Index == 0) c = $"{(isLeap ? "闰" : "")}{Name}月{(isBig ? "大" : "小")}";
                     else c = $"{ob.Name}";
                 }
-                isM = $"font color=#505000>{ob.MoonState.ToString()}</font>";
+                isM = $"<font color=#505000>{ob.MoonState.ToString()}</font>";
                 isM += (ob.isTodayJieqi ? "<font color=#00C000>◆</font>" : "");
                 var c2 = ob.isHolidy ? sty_date2 : sty_date;                 //节日置红色
 
@@ -455,7 +455,7 @@ namespace Prophecy
                     for (int j = 0; j < 6 - ob.WeekIndex; j++)      // 末行后面的空单元格(依据: 本月末日的星期)
                         cr.Append($"<td{sty_body}></td>");
                 }
-                if (i == this.DayNum - 1 || ob.WeekIndex == 6)
+                if (i == this.DayNum - 1 || ob.WeekNum == 6)
                 {
                     ta0.Append($"<tr>{cr.ToString()}</tr>");
                     cr.Remove(0, cr.Length);

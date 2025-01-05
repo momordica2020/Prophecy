@@ -270,20 +270,50 @@ namespace Prophecy
             {
                 // 使用当前系统时间（UTC 时间）
                 DateTime now = DateTime.UtcNow;
-                return new JDateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second);
+                return new JDateTime(now);
             }
         }
 
         public static JDateTime Now
         {
-            get { return UtcNow; }
+            get 
+            {
+                DateTime now = DateTime.Now.ToLocalTime();
+                return new JDateTime(now);
+            }
         }
 
 
         #region String <=> JDateTime
 
+        /// <summary>
+        /// 格式化 ToString 输出公历信息
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return ToStringGeroge();
+        }
 
-        
+
+        static string WeekDayName = "日一二三四五六";
+        static string DealTimeToStringTemplate(string format, int y, int M, int d, int w, int h, int m, int s)
+        {
+            var res = format;
+            var ry = y;
+            if (ry <= 0) ry = ry - 1;
+
+            res = res.Replace("MM", M.ToString("D2")).Replace("M", M.ToString("D"))
+                .Replace("yyyy", ry.ToString("D4")).Replace("yy", ry.ToString("D2")).Replace("y", ry.ToString("D"))
+                .Replace("dd", d.ToString("D2")).Replace("d", d.ToString("D"))
+                .Replace("W", WeekDayName[(w%7 + 7) % 7].ToString()).Replace("w", w.ToString("D"))
+                .Replace("HH", h.ToString("D2")).Replace("hh", (h%12).ToString("D2"))
+                .Replace("H", h.ToString("D")).Replace("h", (h % 12).ToString("D"))
+                .Replace("mm", m.ToString("D2")).Replace("m", m.ToString("D"))
+                .Replace("ss", s.ToString("D2")).Replace("s", s.ToString("D"));
+
+            return res;
+        }
 
 
 

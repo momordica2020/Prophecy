@@ -332,6 +332,8 @@ namespace Prophecy.Astronomy
                 //修正后仍不影响-103的无中置闰。
                 //如果使用秦汉历，得到的是24日，本行D不会被执行。
                 if (Math.Floor(resultJD)== 1683460) resultJD++;
+
+                resultJD -= JDateTime.JD_2000;
             }
             else if (jd >= f2 && jd < f3)
             {
@@ -384,6 +386,7 @@ namespace Prophecy.Astronomy
                 //修正后仍不影响-103的无中置闰。
                 //如果使用秦汉历，得到的是24日，跳过本行。
                 if (Math.Floor(resultJD) == 1683460) resultJD++;
+                resultJD -= JDateTime.JD_2000;
             }
             else if (jd >= f2 && jd < f3)
             {
@@ -1064,6 +1067,57 @@ namespace Prophecy.Astronomy
                 //return new Coordinate { J = le_J, W = le_W, R = le_R1 };
             }
 
+        }
+
+
+
+
+
+
+
+        /// <summary>
+        /// 太阳视黄经计算精气
+        /// </summary>
+        /// <param name="W">太阳视黄经</param>
+        /// <returns>以 J2000.0 为基准的儒略日</returns>
+        public static double qi_accurate(double W)
+        {
+            double t = AstronomyOld.S_aLon_t(W) * 36525;
+            return t - AstronomyOld.deltatT2(t) + 8d / 24d;    // 精气
+        }
+
+
+        /// <summary>
+        /// 根据月-日视黄经计算精朔
+        /// </summary>
+        /// <param name="W">月日视黄经</param>
+        /// <returns>以 J2000.0 为基准的儒略日</returns>
+        public static double so_accurate(double W)
+        {
+            double t = AstronomyOld.MS_aLon_t(W) * 36525;
+            return t - AstronomyOld.deltatT2(t) + 8d / 24d;    // 精朔
+        }
+
+
+        /// <summary>
+        /// 精气计算法 jd2000 -> jd2000: 
+        /// </summary>
+        /// <param name="jd2000">以 J2000.0 为基准的儒略日</param>
+        /// <returns>以 J2000.0 为基准的儒略日</returns>
+        public static double qi_accurate2(double jd2000)
+        {
+            return qi_accurate(Math.Floor((jd2000 + 293) / 365.2422 * 24) * Math.PI / 12);
+        }
+
+
+        /// <summary>
+        /// 精朔计算法 jd2000 -> jd2000: 
+        /// </summary>
+        /// <param name="jd">以 J2000.0 为基准的儒略日</param>
+        /// <returns>以 J2000.0 为基准的儒略日</returns>
+        public static double so_accurate2(double jd)
+        {
+            return so_accurate(Math.Floor((jd + 8) / 29.5306) * Math.PI * 2);     // 精朔
         }
 
 

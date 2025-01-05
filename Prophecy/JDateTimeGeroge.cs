@@ -150,13 +150,14 @@ namespace Prophecy
         }
 
 
+
+
         /// <summary>
-        /// 格式化 ToString 输出公历信息
+        /// 输出公历信息
         /// </summary>
-        /// <returns></returns>
-        public override string ToString()
+        public string ToStringGeroge()
         {
-            return ToStringGeroge("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+            return ToStringGeroge("yyyy.MM.dd HH:mm:ss");
         }
 
 
@@ -167,35 +168,35 @@ namespace Prophecy
         /// <returns></returns>
         public string ToStringGeroge(string format)
         {
-            return ToStringGeroge(format, CultureInfo.InvariantCulture);
+            return DealTimeToStringTemplate(format, GerogeYear, GerogeMonth, GerogeDay, GerogeWeek, Hour, Minute, Second);
         }
 
-        /// <summary>
-        /// 输出公历信息
-        /// </summary>
-        /// <param name="format"></param>
-        /// <param name="formatProvider"></param>
-        /// <returns></returns>
-        public string ToStringGeroge(string format, IFormatProvider formatProvider)
-        {
-            var culture = formatProvider as CultureInfo ?? CultureInfo.InvariantCulture;
-            DateTime dateTime = new DateTime(
-                GerogeYear==0?1:Math.Abs(GerogeYear),
-                GerogeMonth,
-                GerogeDay,
-                Hour,
-                Minute,
-                Second,
-                Millisecond
-            );
+        ///// <summary>
+        ///// 输出公历信息
+        ///// </summary>
+        ///// <param name="format"></param>
+        ///// <param name="formatProvider"></param>
+        ///// <returns></returns>
+        //public string ToStringGeroge(string format, IFormatProvider formatProvider)
+        //{
+        //    var culture = formatProvider as CultureInfo ?? CultureInfo.InvariantCulture;
+        //    DateTime dateTime = new DateTime(
+        //        GerogeYear==0?1:Math.Abs(GerogeYear),
+        //        GerogeMonth,
+        //        GerogeDay,
+        //        Hour,
+        //        Minute,
+        //        Second,
+        //        Millisecond
+        //    );
 
-            string result = dateTime.ToString(format, culture);
-            if (GerogeYear <= 0)
-            {
-                string yearString = $"-{Math.Abs(GerogeYear):D4}";
-                result = result.Replace(dateTime.Year.ToString("D4"), yearString);
-            }
-            return result;
-        }
+        //    string result = dateTime.ToString(format, culture);
+        //    if (GerogeYear <= 0)
+        //    {
+        //        string yearString = $"-{Math.Abs(GerogeYear):D4}";
+        //        result = result.Replace(dateTime.Year.ToString("D4"), yearString);
+        //    }
+        //    return result;
+        //}
     }
 }

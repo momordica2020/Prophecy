@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 
@@ -404,6 +406,103 @@ namespace Prophecy
             DateTimeOffset nowDTO = new DateTimeOffset((DateTime)nowDT);
             return (nowDTO.UtcDateTime - DT19700101).TotalMilliseconds;
         }
+
+        /// <summary>
+        /// 转换 BigInteger 为中文自然语言表示
+        /// </summary>
+        /// <param name="number"></param>
+        /// <returns></returns>
+        public static string NumberToHans(BigInteger number)
+        {
+            if (number == 0) return "元";
+            var unitMap = new List<(BigInteger Threshold, string Unit)>
+            {
+                (BigInteger.Pow(10, 76), "大数"),
+                (BigInteger.Pow(10, 72), "无量数"),
+                (BigInteger.Pow(10, 68), "不可思议"),
+                (BigInteger.Pow(10, 64), "那由他"),
+                (BigInteger.Pow(10, 60), "阿僧祇"),
+                (BigInteger.Pow(10, 56), "恒河沙"),
+                (BigInteger.Pow(10, 48), "极"),
+                (BigInteger.Pow(10, 44), "载"),
+                (BigInteger.Pow(10, 40), "正"),
+                (BigInteger.Pow(10, 36), "涧"),
+                (BigInteger.Pow(10, 32), "沟"),
+                (BigInteger.Pow(10, 28), "穰"),
+                (BigInteger.Pow(10, 24), "秭"),
+                (BigInteger.Pow(10, 20), "垓"),
+                (BigInteger.Pow(10, 16), "京"),
+                (BigInteger.Pow(10, 12), "兆"),
+                (100_000_000, "亿"),
+                (10_000, "万"),
+                (1_000, "千"),
+                (100, "百"),
+                (10, "十")
+            };
+
+            string[] hanNum = { "", "一", "二", "三", "四", "五", "六", "七", "八", "九" };
+
+            // 处理负数
+            bool isNegative = number < 0;
+            number = BigInteger.Abs(number);
+
+            var result = new List<string>();
+            int lasti = -1;
+            for (int i=0;i<unitMap.Count;i++)
+            {
+                (var threshold, var unit) = unitMap[i];
+                if (number >= threshold)
+                {
+                    var value = number / threshold;
+                    if(lasti >= 0 && i -lasti > 1 && result.Count > 0 && result[^1] != "零")
+                    {
+                        // skiped.
+                        result.Add("零");
+                    }
+                    result.Add($"{(value<10?hanNum[(int)value]:NumberToHans(value))}{unit}");
+                    number %= threshold;
+                    lasti = i;
+                }
+            }
+            if (result.Count == 1 && result[^1] == "一十") result[^1]="十";
+            if (number > 0 && result.Count > 0 && result[^1] != "零" && lasti != unitMap.Count - 1)
+            {
+                result.Add("零"); // 添加“零”连接符
+            }
+            result.Add(hanNum[(int)number]);
+            
+
+            return isNegative ? "前" + string.Join("", result) : string.Join("", result);
+        }
+
+        /// <summary>
+        /// 获得例如2025 => “二〇二五”这样的字符串。
+        /// 用负数传入公元前时，会改成相应的数值，比如 0 => “前一”， -98 => “前九九”
+        /// </summary>
+        /// <param name="number"></param>
+        /// <returns></returns>
+        public static string NumberToHansOneByOne(BigInteger number)
+        {
+            string[] hanNum = { "〇", "一", "二", "三", "四", "五", "六", "七", "八", "九" };
+            StringBuilder res = new StringBuilder();
+            bool isNegative = false;
+            if (number <= 0) 
+            {
+                isNegative = true;
+                number = BigInteger.Abs(number) + 1;
+            }
+            while (number > 10)
+            {
+                res.Insert(0, hanNum[(int)(number % 10)]);
+                number /= 10;
+            }
+            res.Insert(0, hanNum[(int)(number % 10)]);
+
+            if (isNegative) res.Insert(0, "前");
+
+            return res.ToString();
+        }
+
 
         /// <summary>
         /// 根据中文日期表示来取得数字。例如初三=3，二三=23，二十三=23，廿四=24，正=1，腊=12

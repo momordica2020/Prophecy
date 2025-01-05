@@ -102,8 +102,9 @@ namespace TestSharpSxwnl
             int Bm = int.Parse(this.Cal_m.Text);
             lyear = new LunarYear(curJD2000 + JDateTime.JD_2000);
             lmonth = lyear.Month[Bm];
-            lmonth.ToText();
+            
             lmonth.ToHtml(curJD2000);// ((int)By, (int)Bm, this.curJD2000);
+            lmonth.ToText();
             this.txtPg0_Text.Text = lyear.pg0_text;
             this.txtPg1_Text.Text = lmonth.text1;
             this.txtPg2_Text.Text = lmonth.text2;
@@ -537,20 +538,20 @@ namespace TestSharpSxwnl
             //sb.AppendLine(@"</SxwnlData>");
 
 
-            // 纪年表数据
-            sb.AppendLine(@"<SxwnlData>");
-            sb.AppendLine(@"    <Data Id='obb_JNB' Name='历史纪年表' Note='数据用逗号分开,每7个描述一个年号,格式为:起始公元(天文纪年方式),使用年数,已用年数,朝代,朝号,皇帝,年号'>");
-            for (int i = 0; i < LunarData.JNB.Count; i += 7)
-            {
-                for (j = 0; j < 7; j++)
-                {
-                    sb.Append(LunarData.JNB[i + j].ToString() + (i + j < LunarData.JNB.Count - 1 ? "," : ""));
-                }
-                if (i + j < LunarData.JNB.Count - 1)
-                    sb.AppendLine();
-            }
-            sb.AppendLine(@"</Data>");
-            sb.AppendLine(@"</SxwnlData>");
+            //// 纪年表数据
+            //sb.AppendLine(@"<SxwnlData>");
+            //sb.AppendLine(@"    <Data Id='obb_JNB' Name='历史纪年表' Note='数据用逗号分开,每7个描述一个年号,格式为:起始公元(天文纪年方式),使用年数,已用年数,朝代,朝号,皇帝,年号'>");
+            //for (int i = 0; i < LunarData.JNB.Count; i += 7)
+            //{
+            //    for (j = 0; j < 7; j++)
+            //    {
+            //        sb.Append(LunarData.JNB[i + j].ToString() + (i + j < LunarData.JNB.Count - 1 ? "," : ""));
+            //    }
+            //    if (i + j < LunarData.JNB.Count - 1)
+            //        sb.AppendLine();
+            //}
+            //sb.AppendLine(@"</Data>");
+            //sb.AppendLine(@"</SxwnlData>");
 
 
             //// 按周规则定义的节假日(纪念日)

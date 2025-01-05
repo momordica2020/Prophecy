@@ -8,8 +8,77 @@ using static System.Net.Mime.MediaTypeNames;
 namespace Prophecy
 {
     public partial class JDateTime
-    {       
+    {
+        #region 农历年
 
+
+
+        /// <summary>
+        /// 本日所属以立春为界定的农历年序数
+        /// </summary>
+        public int LunarYear0 { get { UpdateLunar(); return _lunarYear0; } }
+        //{
+        //    get
+        //    {
+        //            // 以立春为界定年首
+        //            var D = ZQ[3] + (JulianDateFrom2000 < ZQ[3] ? -365 : 0) + 365.25 * 16 - 35; //以立春为界定纪年
+        //        var Lyear = Math.Floor(D / 365.2422 + 0.5); //农历纪年(10进制,1984年起算)
+        //        return (int)Lyear;
+
+        /// <summary>
+        /// 本日所属以正月初一为界定的农历年序数
+        /// </summary>
+        public int LunarYear { get { UpdateLunar(); return _lunarYear; } }
+
+
+        //        //ob.Lyear2 = new GanZhi(ob.Lyear + 9000);    // 干支纪年(立春)
+        //        //ob.Lyear3 = new GanZhi(ob.Lyear0 + 9000);   // 干支纪年(正月)
+        //        //ob.Lyear4 = ob.Lyear0 + 1984 + 2698;    // 黄帝纪年
+        //    }
+        //}
+
+        ///// <summary>
+        ///// 本日所属以正月初一为界定的农历年
+        ///// </summary>
+        //public int LunarYear0Zheng
+        //{
+        //    get
+        //    {
+        //        // 以下几行以正月初一定年首
+        //        var D = Year.HS[2];     // 一般第3个月为春节
+        //        for (int j = 0; j < 14; j++)
+        //        {
+        //            // 找春节
+        //            if (Year.Month[j].Name != "正") continue;
+        //            D = Year.HS[j];
+        //            if (jd0 < D) { D -= 365; break; }   // 无需再找下一个正月
+        //        }
+        //        D = D + 5810;    // 计算该年春节与1984年平均春节(立春附近)相差天数估计
+        //        return (int)(Math.Floor(D / 365.2422 + 0.5));   // 农历纪年(10进制,1984年起算)
+        //    }
+        //}
+
+
+
+        /// <summary>
+        /// 生肖
+        /// </summary>
+        public Shengxiao LunarShengxiao
+        {
+            get
+            {
+                var ls = LunarYear + 8;
+                if (ls < 0) ls = (Math.Abs(ls / 12) + 1) * 12 + ls;
+                ls = ls % 12;
+                return (Shengxiao)ls;
+            }
+        }
+
+
+
+        #endregion
+
+        #region 农历月
         /// <summary>
         /// 农历月序号，1~12，闰月和上一个月相同
         /// </summary>
@@ -34,31 +103,13 @@ namespace Prophecy
         }
 
 
-        /// <summary>
-        /// 农历日
-        /// </summary>
-        public int LunarDay { 
-            get
-            {
-                UpdateLunar();
-                return _lunarDay;
-            }
-        }
 
-        /// <summary>
-        /// 农历时辰
-        /// </summary>
-        public int LunarHour
-        {
-            get
-            {
-                return ((Hour + 1) / 2 % 12) + 1;
-            }
-        }
         /// <summary>
         /// 是否是农历的闰月
         /// </summary>
-        public bool IsLunarLeapMonth { get
+        public bool IsLunarLeapMonth
+        {
+            get
             {
                 UpdateLunar();
                 return _lunarIsLeapMonth;
@@ -78,7 +129,62 @@ namespace Prophecy
         }
 
 
-        
+        /// <summary>
+        /// 月建对应的默认月名称：建子十一,建丑十二,建寅为正……
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public string GetLunarMonthName(double index)
+        {
+            /// <summary>
+            /// 农历各月的名称, 从 "十一" 月开始, 即从月建 "子" 开始, 与十二地支的顺序对应
+            /// </summary>
+            string[] ymc = ["十一", "十二", "正", "二", "三", "四", "五", "六", "七", "八", "九", "十"]; //月名称,建寅
+
+            return ymc[((int)(index)) % ymc.Length];
+        }
+
+
+
+
+        #endregion
+
+
+
+        #region 农历日
+        /// <summary>
+        /// 农历日
+        /// </summary>
+        public int LunarDay { 
+            get
+            {
+                UpdateLunar();
+                return _lunarDay;
+            }
+        }
+
+
+        /// <summary>
+        /// 农历日名
+        /// </summary>
+        public LunarDayName LunarDayName
+        {
+            get
+            {
+                return ((LunarDayName)(LunarDay - 1));
+            }
+        }
+
+        ///// <summary>
+        ///// 日干支
+        ///// </summary>
+        //public GanZhi ganZhi
+        //{
+        //    get
+        //    {
+        //        return new GanZhi(JulianDate + 50);
+        //    }
+        //}
 
 
         ///// <summary>
@@ -108,77 +214,58 @@ namespace Prophecy
         //public int toLiqiu { get { UpdateLunar(); return (int)(JulianDateFrom2000 - ZQ[15]); } }
 
 
+
+        #endregion
+
+        #region 农历时
         /// <summary>
-        /// 生肖
+        /// 农历时辰
         /// </summary>
-        public Shengxiao LunarShengxiao
+        public int LunarHour
         {
             get
             {
-                var ls = LunarYear + 8;
-                if (ls < 0) ls = (Math.Abs(ls / 12) + 1) * 12 + ls;
-                ls = ls % 12;
-                return (Shengxiao)ls;
+                return ((Hour + 1) / 2 % 12) + 1;
             }
         }
-
-        ///// <summary>
-        /////  当日星座
-        ///// </summary>
-        //public Xingzuo xingzuo
-        //{
-        //    get
-        //    {
-
-        //        var mk = (int)Math.Floor((jd0 - Year.ZQ[0] - 15) / 30.43685);
-        //        if (mk < 11 && jd0 >= Year.ZQ[2 * mk + 2]) mk++; //星座所在月的序数,(如果j=13,ob.d0不会超过第14号中气)
-        //        return (Xingzuo)((int)((mk + 12) % 12));
-        //    }
-        //}
-
+        static string[] LunarHourName = ["夜半","鸡鸣","平旦","日出","食时","隅中","日中","日昳","晡时","日入","黄昏","人定"];
+        static string[] LunarTickName = ["初", "二", "三", "四"];
 
         /// <summary>
-        /// 当日所属节日
+        /// 农历几刻
         /// </summary>
-        /// <param name="level">节日等级，-1：全部，1：重要，2：一般，3：不重要</param>
-        /// <returns></returns>
-        public Feast[] Feasts(int level = -1)
-        {
-            if (level < 0) return FeastStructs.MatchFeasts(this).ToArray();
-            else return FeastStructs.MatchFeasts(this).Where(f => f.Level == level).ToArray();
-        }
-
-
-        ///// <summary>
-        ///// 是否放假
-        ///// </summary>
-        //public bool isHolidy
-        //{
-        //    get
-        //    {
-        //        return WeekNum == 5 || WeekNum == 6 || Feasts().Where(f => f.isHolidy == true).Any();
-        //    }
-        //}
-
-        /// <summary>
-        /// 月相，值在0~1之间，0是新月，0.5是满月
-        /// </summary>
-        public MoonState MoonState
+        public int LunarTick
         {
             get
             {
-                double w = AstronomyOld.MS_aLon(JulianDateFrom2000 / 36525, 10, 3);
-                w = Math.Floor((w - 0.78) / Math.PI * 2) * Math.PI / 2;
-
-                // 使用精确月相时间函数计算月相
-                // double D = Math.Floor(LunarData.so_accurate(w) + 0.5); 
-
-                // 计算月相位置（0~1 之间的值）
-                double phaseValue = (w % Math.PI * 2) / (Math.PI * 2); // 将 w 归一化到 [0, 1)
-                return new MoonState(phaseValue < 0 ? phaseValue + 1 : phaseValue); // 确保值在 [0, 1)
-
+                return (Minute / 15) + 1;
             }
         }
+
+
+        /// <summary>
+        /// 农历时刻描述串，即子初三刻、午正二刻……
+        /// </summary>
+        public string LunarShiKe
+        {
+            get
+            {
+                var h = (Dizhi)(LunarHour - 1);
+                var h2 = Hour % 2 == 0?"初":"正";
+                var t = LunarTickName[LunarTick - 1];
+                return $"{h.ToString()}{h2}{t}刻";
+            }
+        }
+
+
+        #endregion
+
+
+
+        #region 节气
+
+
+
 
         /// <summary>
         /// 所属节气
@@ -228,93 +315,8 @@ namespace Prophecy
         }
 
 
-        /// <summary>
-        /// 本日所属以立春为界定的农历年序数
-        /// </summary>
-        public int LunarYear0 { get { UpdateLunar(); return _lunarYear0; } }
-        //{
-        //    get
-        //    {
-        //            // 以立春为界定年首
-        //            var D = ZQ[3] + (JulianDateFrom2000 < ZQ[3] ? -365 : 0) + 365.25 * 16 - 35; //以立春为界定纪年
-        //        var Lyear = Math.Floor(D / 365.2422 + 0.5); //农历纪年(10进制,1984年起算)
-        //        return (int)Lyear;
 
-        /// <summary>
-        /// 本日所属以正月初一为界定的农历年序数
-        /// </summary>
-        public int LunarYear{ get { UpdateLunar(); return _lunarYear; }}
-
-
-        //        //ob.Lyear2 = new GanZhi(ob.Lyear + 9000);    // 干支纪年(立春)
-        //        //ob.Lyear3 = new GanZhi(ob.Lyear0 + 9000);   // 干支纪年(正月)
-        //        //ob.Lyear4 = ob.Lyear0 + 1984 + 2698;    // 黄帝纪年
-        //    }
-        //}
-
-        ///// <summary>
-        ///// 本日所属以正月初一为界定的农历年
-        ///// </summary>
-        //public int LunarYear0Zheng
-        //{
-        //    get
-        //    {
-        //        // 以下几行以正月初一定年首
-        //        var D = Year.HS[2];     // 一般第3个月为春节
-        //        for (int j = 0; j < 14; j++)
-        //        {
-        //            // 找春节
-        //            if (Year.Month[j].Name != "正") continue;
-        //            D = Year.HS[j];
-        //            if (jd0 < D) { D -= 365; break; }   // 无需再找下一个正月
-        //        }
-        //        D = D + 5810;    // 计算该年春节与1984年平均春节(立春附近)相差天数估计
-        //        return (int)(Math.Floor(D / 365.2422 + 0.5));   // 农历纪年(10进制,1984年起算)
-        //    }
-        //}
-
-        
-
-        /// <summary>
-        /// 月建对应的默认月名称：建子十一,建丑十二,建寅为正……
-        /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
-        public string GetLunarMonthName(double index)
-        {
-            /// <summary>
-            /// 农历各月的名称, 从 "十一" 月开始, 即从月建 "子" 开始, 与十二地支的顺序对应
-            /// </summary>
-            string[] ymc = ["十一", "十二", "正", "二", "三", "四", "五", "六", "七", "八", "九", "十"]; //月名称,建寅
-
-            return ymc[((int)(index)) % ymc.Length];
-        }
-
-
-
-
-
-        /// <summary>
-        /// 农历日名
-        /// </summary>
-        public LunarDayName LunarDayName
-        {
-            get
-            {
-                return ((LunarDayName)(LunarDay-1));
-            }
-        }
-
-        ///// <summary>
-        ///// 日干支
-        ///// </summary>
-        //public GanZhi ganZhi
-        //{
-        //    get
-        //    {
-        //        return new GanZhi(JulianDate + 50);
-        //    }
-        //}
+        #endregion
 
 
 
@@ -322,27 +324,27 @@ namespace Prophecy
 
         private int _lunarYear; 
         private int _lunarYear0;
-
+        private List<double> HS;
+        private List<double> ZQ;
         /// <summary>
         /// 农历月的序号，即0表示十一月（子），2表示正月（寅），闰月的序号和相应平月相同。
         /// </summary>
         private int _lunarMonth;
         private int _lunarMonthRealIndex;   // 真实序号是为了查月信息，因为闰月和平月可能用同一个_lunarMonth值
         private int _jieqi;
-        private int _lunarDay;
-        //private int _lunarHour;
         private bool _lunarIsLeapMonth;
-
-        private List<double> HS;
-
-        private List<double> ZQ;
-        //private List<double> ZQ2;
-        
-
         const int MAXMonthNUM = 14;
         int[] _LunarMonthSize = new int[MAXMonthNUM];
         int[] _LunarMonthIndex = new int[MAXMonthNUM];
         string[] _LunarMonthName = new string[MAXMonthNUM];
+
+
+
+
+        private int _lunarDay;
+        //private int _lunarHour;
+        
+
 
         #endregion
 
@@ -392,7 +394,7 @@ namespace Prophecy
                 }
                 
 
-                initLunarMonths();
+                _UpdateLunarMonths();
 
 
 
@@ -454,7 +456,10 @@ namespace Prophecy
             //return (lunarYearIndex, lunarMonthIndex, lunarDayIndex, lunarHourIndex, isLeapMonth);
         }
 
-        void initLunarMonths()
+        /// <summary>
+        /// 更新月信息
+        /// </summary>
+        private void _UpdateLunarMonths()
         {
 
             var LeapMonth = -1;
@@ -561,13 +566,26 @@ namespace Prophecy
         /// </summary>
         /// <param name="jd2000"></param>
         /// <returns></returns>
-        double GetJulianDateOfLunarHour0(double jd2000)
+        private double GetJulianDateOfLunarHour0(double jd2000)
         {
             var jdt = new JDateTime(jd2000, true);
             jdt = new JDateTime(jdt.GerogeYear, jdt.GerogeMonth, jdt.GerogeDay, 23, 0, 0);
             if (jdt.JulianDateFrom2000 > jd2000) jdt.AddDays(-1);
             return jdt.JulianDate;
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         /// <summary>
@@ -578,33 +596,11 @@ namespace Prophecy
         /// <returns>格式化的回历日期字符串</returns>
         public string ToStringLunar(string format, IFormatProvider formatProvider = null)
         {
-            // 如果未提供格式化器，使用默认的文化信息
-            var culture = formatProvider as CultureInfo ?? CultureInfo.InvariantCulture;
-
-
-            // 构造虚拟的 DateTime 对象来格式化时间部分
-            DateTime fakeDateTime = new DateTime(
-                LunarYear==0?1:Math.Abs(LunarYear),
-                LunarMonth,
-                LunarDay,
-                LunarHour,//LunarHour,
-                Minute,
-                Second,
-                Millisecond
-            );
-
-            // 使用格式化器格式化时间部分
-            string result = fakeDateTime.ToString(format, culture);
-
-            // 如果是公元前的年份，手动替换年份部分
-            if (LunarYear <= 0)
-            {
-                string yearString = $"-{Math.Abs(LunarYear - 1):D4}";
-                result = result.Replace(fakeDateTime.Year.ToString("D4"), yearString);
-            }
-
-            return result;
+            return DealTimeToStringTemplate(format, LunarYear, LunarMonth, LunarDay, GerogeWeek, LunarHour, LunarTick, Second);
         }
+
+
+
 
 
         public string LunarTest()
@@ -614,14 +610,14 @@ namespace Prophecy
             for (int i = 0; i < HS.Count; i++)
             {
                 var moonjd = HS[i];
-                res += $"{i} -> {new JDateTime(moonjd,true).ToStringGeroge("yyyy-MM-dd HH:mm:ss")}\r\n";
+                res += $"{i} -> {new JDateTime(moonjd,true).ToStringGeroge()}\r\n";
             }
 
             for (int i = 0; i < ZQ.Count; i += 2)
             {
                 var jq = ZQ[i];
                 var jq2 = i + 1 < ZQ.Count ? ZQ[i + 1] : 0;
-                res += $"{i} -> {new JDateTime(jq, true).ToStringGeroge("yyyy-MM-dd HH:mm:ss")}{(jq2 > 0 ? $"\t{new JDateTime(jq2, true).ToStringGeroge("yyyy-MM-dd HH:mm:ss")}" : "")}\r\n";
+                res += $"{i} -> {new JDateTime(jq, true).ToStringGeroge()}{(jq2 != 0 ? $"\t{new JDateTime(jq2, true).ToStringGeroge()}" : "")}\r\n";
             }
 
             return res;

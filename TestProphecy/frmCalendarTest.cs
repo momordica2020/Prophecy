@@ -2,6 +2,7 @@
 using CalendarLibrary.Configuration;
 using CalendarLibrary.Julian;
 using Prophecy;
+using Prophecy.Data;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -49,11 +50,12 @@ namespace TestProphecy
             var r0 = dt.LunarFourPillars0;
             WriteLine($"四柱（节气）：{r0.Year} {r0.Month} {r0.Day} {r0.Hour}");
             WriteLine($"儒略日：{dt.JulianDate}   {dt.JulianDateFrom2000}");
-            WriteLine($"公历 {dt.ToString()}");
+            WriteLine($"公历：{dt.ToStringGeroge("yyyy年MM月dd日 星期W hh:mm:ss")}");
 
-            WriteLine($"回历 {dt.ToStringIslamic("yyyy年MM月dd日")}");
-            WriteLine($"农历{dt.ToStringLunar("yyyy年MM月dd日 h时辰")}");
-            WriteLine($"农历{dt.LunarShengxiao.ToString()}年 {(dt.IsLunarLeapMonth ? "闰" : "")}{dt.LunarMonthName}月{(dt.IsLunarBigMonth?"大":"小")} {dt.LunarDayName}日 {dt.Jieqi.ToString()}已过{dt.JieqiBegin}天{(dt.isTodayJieqi?"★":"")}");
+            WriteLine($"回历：{dt.ToStringIslamic("yyyy年MM月dd日")}");
+            WriteLine($"农历：{dt.ToStringLunar("yyyy年MM月dd日 h时m刻")}");
+            WriteLine($"农历：{dt.LunarFourPillars.Year.ToString()}{dt.LunarShengxiao.ToString()}年 {(dt.IsLunarLeapMonth ? "闰" : "")}{dt.LunarMonthName}月{(dt.IsLunarBigMonth?"大":"小")} {dt.LunarDayName}日 {dt.LunarShiKe} {dt.Jieqi.ToString()}已过{dt.JieqiBegin}天{(dt.isTodayJieqi?"★":"")}");
+            WriteLine($"{ChaodaiInfo.getChaodaiDesc(dt.LunarYear, dt.LunarMonth)}");
 
             WriteLine(dt.LunarTest());
             if (jd)
