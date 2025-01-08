@@ -92,10 +92,20 @@ namespace Prophecy.Data
                 {
                     int last = (cc.IsLunar ? jdt.LunarYear : jdt.GerogeYear) - cc._BeginYearOrigin + 1;
                     string lastdesc = last == 1 ? "元" : Util.NumberToHans(last);
-                    res += $"{cc.DynastyName}{cc.Name}{lastdesc}年" +
-                        $"({(cc.DynastyPre.Count>0?string.Join(" ",cc.DynastyPre)+$"{cc.DynastyName}":"")},{cc.EmperorTitle} {cc.EmperorName}),";
-                }
+                    var yearname = $"{cc.Name}{lastdesc}年";
+                    var dname = string.IsNullOrWhiteSpace(cc.DynastyName) ? "" : $"[{cc.DynastyName}]";
+                    
+                    var ddesc = $"{(cc.DynastyPre.Count > 0 ? string.Join(" ", cc.DynastyPre) + " " + cc.DynastyName:"")},";
+                    var edesc = $"{cc.EmperorTitle}{cc.EmperorName}";
+                    var desc = "";
+                    if (ddesc.Length > 2) desc = ddesc.Trim();
+                    desc += edesc;
+                    if (desc.Length > 0) desc = $"({desc})";
+                    
+                                        
+                    res += $"{dname.Trim()}{yearname}{desc}\r\n";
 
+                }
             }
             else
             {
@@ -109,16 +119,18 @@ namespace Prophecy.Data
 
 
 
-        public static readonly List<ChaodaiItem> Items;
+        public static readonly List<ChaodaiItem> Items = new List<ChaodaiItem>();
         static ChaodaiInfo()
         {
             int pYear = 100; // 将至今依然计算的年号往后续一些年份
             int TodayGerogeYear = DateTime.Now.Year;
             Items.AddRange(ItemCH);
             Items.AddRange(ItemJP);
+            Items.AddRange(ItemVN);
+            Items.AddRange(ItemKR);
             Items.Add(new("民国", 1912, TodayGerogeYear - 1911 + pYear, "", "", "", false));
             Items.Add(new("建国", 1949, TodayGerogeYear - 1948 + pYear, "中华人民共和国", "", "", false));
-            Items.Add(new("黄帝", -2697, TodayGerogeYear + 2698 + pYear, "中华", "", "", false));
+            //Items.Add(new("黄帝", -2697, TodayGerogeYear + 2698 + pYear, "中华", "", "", false));
             Items.Add(new("令和", 2019.05, TodayGerogeYear - 2018 + pYear, "日本", "", "德仁天皇"));
             
             //new("上古", int.MinValue, Math.Abs(int.MinValue + 2069), "", "", ""),
