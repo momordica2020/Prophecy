@@ -25,7 +25,7 @@ Prophecy is a library based on ​**Sxwnl (寿星万年历)**, providing various
 You can install the library via NuGet Package Manager:
 
 ```bash
-dotnet add package ProphecyLibrary
+dotnet add package Prophecy
 
 ```
 
