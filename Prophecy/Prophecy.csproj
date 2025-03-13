@@ -3,5 +3,34 @@
     <TargetFramework>net8.0</TargetFramework>
     <OutputType>Library</OutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <SymbolPackageFormat>symbols.nupkg</SymbolPackageFormat>
+    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/momordica2020/Prophecy</RepositoryUrl>
+    <Description>Prophecy is a calendar library based on ​Sxwnl (寿星万年历), providing various mystical calculation utilities.
+Features: 
+​Calendar Conversions:
+- 公历 Julian calendar
+- 农历 Chinese lunar calendar
+- 回历 Islamic calendar
+ 天文学工具 朔望日计算
+ 四柱（八字）摆盘
+ 星座推算
+ 奇门遁甲演局
+ 大六壬演局
+...
+</Description>
+    <Title>Prophecy 中文玄学综合工具</Title>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://github.com/momordica2020/Prophecy</PackageProjectUrl>
+    <Authors>Lunarsa</Authors>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <Version>1.0.1</Version>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\TestFunctions个人测试用sharp代码\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 </Project>

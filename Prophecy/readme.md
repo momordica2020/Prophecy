@@ -1,4 +1,4 @@
-﻿# ProphecyLibrary 中文玄学综合工具
+﻿# Prophecy 中文玄学综合工具
 
 [![NuGet](https://img.shields.io/nuget/v/Prophecy.svg?style=flat-square)](https://www.nuget.org/packages/Prophecy)
 
