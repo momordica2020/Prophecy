@@ -1,0 +1,29 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <!-- Unique identifier for the package -->
+    <id>ProphecyLibrary</id>
+    <!-- Version of the package -->
+    <version>0.1.0</version>
+    <!-- Title of the package -->
+    <title>ProphecyLibrary</title>
+    <!-- Author of the package -->
+    <authors>Lunarsa</authors>
+    <!-- Owner of the package -->
+    <owners>Lunarsa</owners>
+    <!-- Description of the package -->
+    <description>
+      Prophecy is a library based on Sxwnl (寿星万年历), providing various mystical calculation utilities.
+      It supports conversions between Julian calendar, Chinese lunar calendar, and Islamic calendar, as well as calculations for new moons, 
+      Four Pillars of Destiny (Bazi), zodiac signs, Qimen Dunjia, and Da Liu Ren divination.
+      Ideal for developers who need mystical calculations, calendar conversions, and destiny analysis.
+    </description>
+    <!-- Release notes for the package -->
+    <releaseNotes>Initial release with basic functionalities.</releaseNotes>
+    <!-- Tags for easier discovery -->
+    <tags>mysticism calendar chinese-lunar julian islamic</tags>
+    <!-- Dependencies (if any) -->
+    <dependencies>
+    </dependencies>
+  </metadata>
+</package>
