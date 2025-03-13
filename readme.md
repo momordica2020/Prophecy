@@ -1,15 +1,31 @@
-# ÖĞÎÄĞşÑ§×ÛºÏ¹¤¾ß
+ï»¿# Prophecy ä¸­æ–‡ç„å­¦ç»¼åˆå·¥å…·
 
-## ¼ò½é
+[![NuGet](https://img.shields.io/nuget/v/Prophecy.svg?style=flat-square)](https://www.nuget.org/packages/Prophecy)
 
- - »ù´¡°æ±¾À´×ÔÓÚ[SharpSxwnl](https://github.com/HongchenMeng/SharpSxwnl)
+Prophecy is a library based on â€‹**Sxwnl (å¯¿æ˜Ÿä¸‡å¹´å†)**, providing various mystical calculation utilities...
 
-## ¹¦ÄÜ
+ - åŸºç¡€ç‰ˆæœ¬æ¥è‡ªäº[SharpSxwnl](https://github.com/HongchenMeng/SharpSxwnl)
 
-- ÈåÂÔÀú¡¢ÖĞ¹úÅ©Àú¡¢»ØÀú×ª»»
-- Ë·ÍûÈÕ¼ÆËã
-- ËÄÖù°ÚÅÌ
-- ĞÇ×ùÍÆËã
-- ÆæÃÅ¶İ¼×Ñİ¾Ö
-- ´óÁùÈÉÑİ¾Ö
-- ¡­¡­
+
+## Features
+
+- â€‹[x] å†æ³•è½¬æ¢ Calendar Conversions:
+  - å…¬å† Julian calendar
+  - å†œå† Chinese lunar calendar
+  - å›å† Islamic calendar
+- [x] å¤©æ–‡å­¦å·¥å…· æœ”æœ›æ—¥è®¡ç®—
+- [ ] å››æŸ±ï¼ˆå…«å­—ï¼‰æ‘†ç›˜
+- [ ] æ˜Ÿåº§æ¨ç®—
+- [ ] å¥‡é—¨éç”²æ¼”å±€
+- [ ] å¤§å…­å£¬æ¼”å±€
+- â€¦â€¦
+
+## Installation
+
+You can install the library via NuGet Package Manager:
+
+```bash
+dotnet add package Prophecy
+
+```
+

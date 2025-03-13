@@ -28,7 +28,7 @@ Features:
     <Version>1.0.1</Version>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\..\TestFunctions个人测试用sharp代码\README.md">
+    <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
