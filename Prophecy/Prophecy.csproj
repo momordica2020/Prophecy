@@ -25,7 +25,7 @@ Features:
     <PackageProjectUrl>https://github.com/momordica2020/Prophecy</PackageProjectUrl>
     <Authors>Lunarsa</Authors>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\README.md">
