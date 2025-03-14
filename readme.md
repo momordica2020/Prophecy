@@ -9,10 +9,10 @@ Prophecy is a library based on ​**Sxwnl (寿星万年历)**, providing various
 
 ## Features
 
-- ​[x] 历法转换 Calendar Conversions:
-  - 公历 Julian calendar
-  - 农历 Chinese lunar calendar
-  - 回历 Islamic calendar
+- ​历法转换 Calendar Conversions:
+  - [x] 公历 Julian calendar
+  - [x] 农历 Chinese lunar calendar
+  - [x] 回历 Islamic calendar
 - [x] 天文学工具 朔望日计算
 - [ ] 四柱（八字）摆盘
 - [ ] 星座推算
